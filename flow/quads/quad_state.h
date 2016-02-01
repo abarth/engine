@@ -22,8 +22,8 @@ class QuadState {
   const SkMatrix& transform() const { return transform_; }
   void set_transform(SkMatrix transform) { transform_ = std::move(transform); }
 
-  const SkRect& target_rect() const { return target_rect_; }
-  void set_target_rect(SkRect rect) { target_rect_ = std::move(rect); }
+  const SkIRect& target_rect() const { return target_rect_; }
+  void set_target_rect(SkIRect rect) { target_rect_ = std::move(rect); }
 
   const GrClip& clip() const { return clip_; }
 
@@ -41,7 +41,7 @@ class QuadState {
 
  private:
   SkMatrix transform_;
-  SkRect target_rect_;
+  SkIRect target_rect_;
   GrClip clip_;
   int alpha_;
   bool has_color_filter_;

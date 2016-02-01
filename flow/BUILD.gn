@@ -36,6 +36,8 @@ source_set("flow") {
     "layers/transform_layer.h",
     "paint_context.cc",
     "paint_context.h",
+    "quads/ephemeral_quad.cc",
+    "quads/ephemeral_quad.h",
     "quads/picture_quad.cc",
     "quads/picture_quad.h",
     "quads/quad.cc",

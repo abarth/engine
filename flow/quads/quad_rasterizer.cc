@@ -12,9 +12,9 @@ QuadRasterizer::QuadRasterizer(GrContext* gr_context) {
 QuadRasterizer::~QuadRasterizer() {
 }
 
-void QuadRasterizer::Rasterize(const std::vector<Quad>& quads) {
+void QuadRasterizer::Rasterize(const std::vector<std::unique_ptr<Quad>>& quads) {
   for (auto& quad : quads)
-    quad.Rasterize(this);
+    quad->Rasterize(this);
 }
 
 }  // namespace flow

@@ -36,7 +36,7 @@ class QuadRasterizer {
   explicit QuadRasterizer(GrContext* gr_context);
   ~QuadRasterizer();
 
-  void Rasterize(const std::vector<Quad>& quads);
+  void Rasterize(const std::vector<std::unique_ptr<Quad>>& quads);
 
   CanvasScope GetCanvas();
   DrawScope GetDrawContext();
