@@ -14,6 +14,8 @@ class PictureLayer : public Layer {
   PictureLayer();
   ~PictureLayer() override;
 
+  void GatherQuads(const SkMatrix& matrix, std::vector<std::unique_ptr<Quad>>* quads) override;
+
   void set_offset(const SkPoint& offset) { offset_ = offset; }
 
   void set_picture(SkPicture* picture) { picture_ = skia::SharePtr(picture); }

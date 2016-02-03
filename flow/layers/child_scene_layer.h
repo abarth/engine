@@ -30,6 +30,9 @@ class ChildSceneLayer : public Layer {
   void UpdateScene(mojo::gfx::composition::SceneUpdate* update,
                    mojo::gfx::composition::Node* container) override;
 
+ protected:
+  void GatherQuads(const SkMatrix& matrix, std::vector<std::unique_ptr<Quad>>* quads) override;
+
  private:
   SkPoint offset_;
   SkISize physical_size_;

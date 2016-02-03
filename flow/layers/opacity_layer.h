@@ -17,6 +17,8 @@ class OpacityLayer : public ContainerLayer {
   void set_alpha(int alpha) { alpha_ = alpha; }
 
  protected:
+  void GatherQuads(const SkMatrix& matrix, std::vector<std::unique_ptr<Quad>>* quads) override;
+
   void Preroll(PrerollContext* context, const SkMatrix& matrix) override;
   void Paint(PaintContext::ScopedFrame& frame) override;
 

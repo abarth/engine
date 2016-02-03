@@ -17,6 +17,12 @@ void ContainerLayer::Add(std::unique_ptr<Layer> layer) {
   layers_.push_back(std::move(layer));
 }
 
+void ContainerLayer::GatherChildQuads(const SkMatrix& matrix,
+                                      std::vector<std::unique_ptr<Quad>>* quads) {
+  for (auto& layer : layers_)
+    layer->GatherQuads(matrix, quads);
+}
+
 void ContainerLayer::Preroll(PrerollContext* context, const SkMatrix& matrix) {
   PrerollChildren(context, matrix);
 }

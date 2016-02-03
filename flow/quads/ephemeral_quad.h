@@ -21,6 +21,10 @@ class EphemeralQuad : public Quad {
 
   void Rasterize(QuadRasterizer* rasterizer) const override;
 
+  void set_children(std::vector<std::unique_ptr<Quad>> children) {
+    children_ = std::move(children);
+  }
+
  private:
   std::vector<std::unique_ptr<Quad>> children_;
 

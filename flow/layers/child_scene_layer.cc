@@ -22,6 +22,10 @@ void ChildSceneLayer::Preroll(PrerollContext* context, const SkMatrix& matrix) {
   transform_.postTranslate(offset_.x(), offset_.y());
 }
 
+void ChildSceneLayer::GatherQuads(const SkMatrix& matrix,
+                                  std::vector<std::unique_ptr<Quad>>* quads) {
+}
+
 void ChildSceneLayer::Paint(PaintContext::ScopedFrame& frame) {
 }
 

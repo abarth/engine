@@ -19,6 +19,19 @@ PictureLayer::PictureLayer() {
 PictureLayer::~PictureLayer() {
 }
 
+void PictureLayer::GatherQuads(const SkMatrix& matrix, std::vector<std::unique_ptr<Quad>>* quads) {
+  SkMatrix inverse;
+  if (!matrix->invert(&inverse))
+    return;
+  unique_ptr<PictureQuad> quad(new PictureQuad());
+  quad->set_picture(picture_);
+  quad->state().set_transform(matrix);
+  SkRect rect = picture_->cullRect().makeOffset(offset_.x(), offset_.y());
+  inverse->mapRect(&rect);
+  quad->state().set_target_rect(rect.roundOut());
+  quads->push_back(std::move(quad));
+}
+
 void PictureLayer::Preroll(PrerollContext* context,
                            const SkMatrix& matrix) {
   image_ = context->frame.context().raster_cache().GetPrerolledImage(

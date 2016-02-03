@@ -18,6 +18,10 @@ class PictureQuad : public Quad {
 
   void Rasterize(QuadRasterizer* rasterizer) const override;
 
+  void set_picture(skia::RefPtr<SkPicture> picture) {
+    picture_ = picture;
+  }
+
  private:
   skia::RefPtr<SkPicture> picture_;
 

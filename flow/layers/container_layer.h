@@ -17,6 +17,8 @@ class ContainerLayer : public Layer {
 
   void Add(std::unique_ptr<Layer> layer);
 
+  void GatherChildQuads(const SkMatrix& matrix, std::vector<std::unique_ptr<Quad>>* quads);
+
   void Preroll(PrerollContext* context, const SkMatrix& matrix) override;
   void PrerollChildren(PrerollContext* context, const SkMatrix& matrix);
 

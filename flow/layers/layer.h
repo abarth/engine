@@ -31,6 +31,8 @@ class Layer {
   Layer();
   virtual ~Layer();
 
+  void GatherQuads(const SkMatrix& matrix, std::vector<std::unique_ptr<Quad>>* quads) = 0;
+
   struct PrerollContext {
     PaintContext::ScopedFrame& frame;
     SkRect child_paint_bounds;
