@@ -18,7 +18,7 @@ class Quad {
 
   virtual void Rasterize(QuadRasterizer* rasterizer) const = 0;
 
-  const QuadState& state() { return state_; }
+  const QuadState& state() const { return state_; }
 
  private:
   QuadState state_;

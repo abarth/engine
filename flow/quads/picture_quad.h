@@ -6,6 +6,7 @@
 #define FLOW_QUADS_PICTURE_QUAD_H_
 
 #include "flow/quads/quad.h"
+#include "skia/ext/refptr.h"
 #include "third_party/skia/include/core/SkPicture.h"
 
 namespace flow {

@@ -9,6 +9,8 @@
 #include "third_party/skia/include/core/SkMatrix.h"
 #include "third_party/skia/include/core/SkRect.h"
 #include "third_party/skia/include/core/SkXfermode.h"
+#include "third_party/skia/include/gpu/GrClip.h"
+#include "third_party/skia/include/gpu/GrPaint.h"
 
 class GrPaint;
 
@@ -27,17 +29,17 @@ class QuadState {
 
   const GrClip& clip() const { return clip_; }
 
-  bool has_alpha() { return alpha_ != SK_AlphaOPAQUE; }
+  bool has_alpha() const { return alpha_ != SK_AlphaOPAQUE; }
   int alpha() const { return alpha_; }
   void set_alpha(int alpha) { alpha_ = alpha; }
 
   bool has_color_filter() const { return has_color_filter_; }
   SkColor color() const { return color_; }
   SkXfermode::Mode transfer_mode() const { return transfer_mode_; }
-  void SetColorFilter(SkColor color, SkXfermode::Mode tranfer_mode);
+  void SetColorFilter(SkColor color, SkXfermode::Mode transfer_mode);
   void ClearColorFilter();
 
-  void AddFragmentProcessors(GrPaint* paint);
+  void AddFragmentProcessors(GrPaint* paint) const;
 
  private:
   SkMatrix transform_;
@@ -46,7 +48,7 @@ class QuadState {
   int alpha_;
   bool has_color_filter_;
   SkColor color_;
-  SkXfermode::Mode tranfer_mode_;
+  SkXfermode::Mode transfer_mode_;
 };
 
 }  // namespace flow

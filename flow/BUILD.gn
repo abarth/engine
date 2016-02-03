@@ -42,6 +42,8 @@ source_set("flow") {
     "quads/picture_quad.h",
     "quads/quad.cc",
     "quads/quad.h",
+    "quads/quad_rasterizer.cc",
+    "quads/quad_rasterizer.h",
     "quads/quad_state.cc",
     "quads/quad_state.h",
     "quads/texture_quad.cc",

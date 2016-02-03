@@ -6,6 +6,7 @@
 #define FLOW_QUADS_TEXTURE_QUAD_H_
 
 #include "flow/quads/quad.h"
+#include "skia/ext/refptr.h"
 #include "third_party/skia/include/gpu/GrTexture.h"
 
 namespace flow {

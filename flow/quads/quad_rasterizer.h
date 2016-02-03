@@ -5,36 +5,58 @@
 #ifndef FLOW_QUADS_QUAD_RASTERIZER_H_
 #define FLOW_QUADS_QUAD_RASTERIZER_H_
 
+#include <vector>
+
 #include "base/macros.h"
+#include "skia/ext/refptr.h"
 #include "third_party/skia/include/core/SkCanvas.h"
+#include "third_party/skia/include/core/SkSurface.h"
 #include "third_party/skia/include/gpu/GrContext.h"
 #include "third_party/skia/include/gpu/GrDrawContext.h"
 #include "third_party/skia/include/gpu/GrRenderTarget.h"
 
 namespace flow {
+class Quad;
 
 class QuadRasterizer {
  public:
   class CanvasScope {
    public:
+    CanvasScope(CanvasScope&& other);
     ~CanvasScope();
     SkCanvas* canvas() const { return canvas_; }
 
    private:
+    explicit CanvasScope(skia::RefPtr<SkSurface> surface);
+
+    friend class QuadRasterizer;
+
+    skia::RefPtr<SkSurface> surface_;
     SkCanvas* canvas_;
+
+    DISALLOW_COPY_AND_ASSIGN(CanvasScope);
   };
 
   class DrawScope {
    public:
+    DrawScope(DrawScope&& other);
     ~DrawScope();
-    GrDrawContext* context() const { return context_; }
+    GrDrawContext* context() const { return context_.get(); }
 
    private:
-    GrDrawContext* context_;
+    explicit DrawScope(skia::RefPtr<GrDrawContext> context);
+
+    friend class QuadRasterizer;
+
+    skia::RefPtr<GrDrawContext> context_;
+
+    DISALLOW_COPY_AND_ASSIGN(DrawScope);
   };
 
-  explicit QuadRasterizer(GrContext* gr_context);
+  QuadRasterizer(GrContext* gr_context, GrRenderTarget* render_target);
   ~QuadRasterizer();
+
+  GrContext* gr_context() const { return gr_context_; }
 
   void Rasterize(const std::vector<std::unique_ptr<Quad>>& quads);
 

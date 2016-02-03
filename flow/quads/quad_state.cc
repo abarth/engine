@@ -4,6 +4,11 @@
 
 #include "flow/quads/quad_state.h"
 
+#include "skia/ext/refptr.h"
+#include "third_party/skia/include/gpu/effects/GrConstColorProcessor.h"
+#include "third_party/skia/include/gpu/effects/GrXfermodeFragmentProcessor.h"
+#include "third_party/skia/include/gpu/SkGr.h"
+
 namespace flow {
 
 QuadState::QuadState() : alpha_(SK_AlphaOPAQUE) {
@@ -15,26 +20,26 @@ QuadState::QuadState() : alpha_(SK_AlphaOPAQUE) {
 QuadState::~QuadState() {
 }
 
-void QuadState::SetColorFilter(SkColor color, SkXfermode::Mode tranfer_mode) {
+void QuadState::SetColorFilter(SkColor color, SkXfermode::Mode transfer_mode) {
   has_color_filter_ = true;
   color_ = color;
-  tranfer_mode_ = tranfer_mode;
+  transfer_mode_ = transfer_mode;
 }
 
 void QuadState::ClearColorFilter() {
   has_color_filter_ = false;
   color_ = SK_ColorBLACK;
-  tranfer_mode_ = SkXfermode::kClear_Mode;
+  transfer_mode_ = SkXfermode::kClear_Mode;
 }
 
-void QuadState::AddFragmentProcessors(GrPaint* paint) {
+void QuadState::AddFragmentProcessors(GrPaint* paint) const {
   if (has_color_filter()) {
     auto processor = skia::AdoptRef(GrConstColorProcessor::Create(
         SkColorToUnpremulGrColor(color_),
         GrConstColorProcessor::kIgnore_InputMode));
     auto filter = skia::AdoptRef(
         GrXfermodeFragmentProcessor::CreateFromDstProcessor(processor.get(),
-                                                            transfer_mode_);
+                                                            transfer_mode_));
     paint->addColorFragmentProcessor(filter.get());
   }
 

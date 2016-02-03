@@ -2,7 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "flow/quads/render_pass_quad.h"
+#include "flow/quads/ephemeral_quad.h"
+
+#include "flow/quads/quad_rasterizer.h"
 
 namespace flow {
 
@@ -18,13 +20,13 @@ void EphemeralQuad::Rasterize(QuadRasterizer* rasterizer) const {
   desc.fWidth = state().target_rect().width();
   desc.fHeight = state().target_rect().height();
   desc.fConfig = kSkia8888_GrPixelConfig;
-  skia::RefPtr<GrTexture> texture = skia::AdoptPtr(
-      rasterizer->context()->textureProvider()->createTexture(desc, false));
+  skia::RefPtr<GrTexture> texture = skia::AdoptRef(
+      rasterizer->gr_context()->textureProvider()->createTexture(desc, false));
   if (!texture)
     return;
-  rasterizer->PushRenderTarget(texture->asRenderTarget());
-  rasterizer->Rasterize(children_);
-  rasterizer->PopRenderTarget();
+  QuadRasterizer child_rasterizer(rasterizer->gr_context(),
+                                  texture->asRenderTarget());
+  child_rasterizer.Rasterize(children_);
 
   SkMatrix identity;
   identity.setIdentity();
@@ -35,7 +37,7 @@ void EphemeralQuad::Rasterize(QuadRasterizer* rasterizer) const {
 
   QuadRasterizer::DrawScope scope = rasterizer->GetDrawContext();
   scope.context()->drawRect(state().clip(), paint, identity,
-                            state().target_rect());
+                            SkRect::Make(state().target_rect()));
 }
 
 }  // namespace flow

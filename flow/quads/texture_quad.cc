@@ -4,6 +4,7 @@
 
 #include "flow/quads/texture_quad.h"
 
+#include "flow/quads/quad_rasterizer.h"
 #include "third_party/skia/include/gpu/effects/GrConstColorProcessor.h"
 #include "third_party/skia/include/gpu/effects/GrXfermodeFragmentProcessor.h"
 #include "third_party/skia/include/gpu/GrPaint.h"
@@ -27,7 +28,7 @@ void TextureQuad::Rasterize(QuadRasterizer* rasterizer) const {
 
   QuadRasterizer::DrawScope scope = rasterizer->GetDrawContext();
   scope.context()->drawRect(state().clip(), paint, identity,
-                            state().target_rect());
+                            SkRect::Make(state().target_rect()));
 }
 
 }  // namespace flow
