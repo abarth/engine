@@ -93,11 +93,12 @@ void RasterizerDirect::Draw(uint64_t layer_tree_ptr,
   GrRenderTarget* render_target = ganesh_canvas_.GetRenderTarget(
       surface_->GetBackingFrameBufferObject(), layer_tree->frame_size());
 
-  std::vector<std::unique_ptr<flow::Quad>> quads;
-  layer_tree->root_layer()->AppendQuads(&quads);
+  flow::QuadCollector collector;
+  layer_tree->root_layer()->CollectQuads(collector);
   flow::QuadRasterizer rasterizer(ganesh_canvas_.gr_context(), render_target);
   rasterizer.GetDrawScope().context()->clear(nullptr, SK_ColorBLACK, true);
-  rasterizer.Rasterize(quads);
+  rasterizer.Rasterize(collector.quads, SkPoint::Make(0.0, 0.0));
+  render_target->flushWrites();
   surface_->SwapBuffers();
 #else
   // There is no way for the compositor to know how long the layer tree

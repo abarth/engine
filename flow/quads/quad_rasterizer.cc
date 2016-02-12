@@ -17,9 +17,10 @@ QuadRasterizer::QuadRasterizer(GrContext* gr_context,
 QuadRasterizer::~QuadRasterizer() {
 }
 
-void QuadRasterizer::Rasterize(const std::vector<std::unique_ptr<Quad>>& quads) {
+void QuadRasterizer::Rasterize(const std::vector<std::unique_ptr<Quad>>& quads,
+                               const SkPoint& offset) {
   for (auto& quad : quads)
-    quad->Rasterize(this);
+    quad->Rasterize(this, offset);
 }
 
 QuadRasterizer::CanvasScope QuadRasterizer::GetCanvasScope() {
@@ -44,7 +45,8 @@ QuadRasterizer::CanvasScope::CanvasScope(CanvasScope&& other) {
 }
 
 QuadRasterizer::CanvasScope::~CanvasScope() {
-  canvas_->flush();
+  if (canvas_)
+    canvas_->flush();
 }
 
 QuadRasterizer::DrawScope::DrawScope(skia::RefPtr<GrDrawContext> context)

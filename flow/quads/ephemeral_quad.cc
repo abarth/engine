@@ -6,7 +6,10 @@
 
 #include "base/logging.h"
 #include "flow/quads/quad_rasterizer.h"
+#include "third_party/skia/include/gpu/effects/GrConstColorProcessor.h"
+#include "third_party/skia/include/gpu/effects/GrXfermodeFragmentProcessor.h"
 #include "third_party/skia/include/gpu/GrTexture.h"
+#include "third_party/skia/include/gpu/SkGr.h"
 
 namespace flow {
 
@@ -17,7 +20,14 @@ EphemeralQuad::EphemeralQuad() {
 EphemeralQuad::~EphemeralQuad() {
 }
 
-void EphemeralQuad::Rasterize(QuadRasterizer* rasterizer) const {
+void EphemeralQuad::ApplyAlpha(int alpha) {
+  fragment_processors_.push_back(skia::AdoptRef(GrConstColorProcessor::Create(
+      GrColorPackRGBA(alpha, alpha, alpha, alpha),
+      GrConstColorProcessor::kModulateRGBA_InputMode)));
+}
+
+void EphemeralQuad::Rasterize(QuadRasterizer* rasterizer,
+                              const SkPoint& offset) const {
   GrSurfaceDesc desc;
   desc.fFlags = kRenderTarget_GrSurfaceFlag;
   desc.fWidth = rect_.width();
@@ -29,18 +39,20 @@ void EphemeralQuad::Rasterize(QuadRasterizer* rasterizer) const {
     return;
   QuadRasterizer child_rasterizer(rasterizer->gr_context(),
                                   texture->asRenderTarget());
-  child_rasterizer.Rasterize(children_);
-
-  SkMatrix identity;
-  identity.setIdentity();
-
-  GrClip clip;
+  child_rasterizer.GetDrawScope().context()->clear(nullptr, SK_ColorTRANSPARENT, true);
+  SkPoint child_offset = SkPoint::Make(-rect_.x(), -rect_.y());
+  child_rasterizer.Rasterize(children_, child_offset);
+  texture->flushWrites();
 
   GrPaint paint;
-  paint.addColorTextureProcessor(texture.get(), identity);
+  paint.addColorTextureProcessor(texture.get(), SkMatrix::I());
+
+  for (auto& processor : fragment_processors_)
+    paint.addColorFragmentProcessor(processor.get());
 
   QuadRasterizer::DrawScope scope = rasterizer->GetDrawScope();
-  scope.context()->drawRect(clip, paint, identity, SkRect::Make(rect_));
+  scope.context()->drawRect(GrClip::WideOpen(), paint, SkMatrix::I(),
+                            rect_.makeOffset(offset.x(), offset.y()));
 }
 
 }  // namespace flow

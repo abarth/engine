@@ -36,6 +36,8 @@ void OpacityLayer::CollectQuads(QuadCollector& collector) {
 
   std::unique_ptr<EphemeralQuad> quad(new EphemeralQuad());
   quad->set_children(std::move(children.quads));
+  quad->set_rect(std::move(children.bounds));
+  quad->ApplyAlpha(alpha_);
   collector.quads.push_back(std::move(quad));
 }
 

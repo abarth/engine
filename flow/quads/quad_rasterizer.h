@@ -58,7 +58,8 @@ class QuadRasterizer {
 
   GrContext* gr_context() const { return gr_context_; }
 
-  void Rasterize(const std::vector<std::unique_ptr<Quad>>& quads);
+  void Rasterize(const std::vector<std::unique_ptr<Quad>>& quads,
+                 const SkPoint& offset);
 
   CanvasScope GetCanvasScope();
   DrawScope GetDrawScope();

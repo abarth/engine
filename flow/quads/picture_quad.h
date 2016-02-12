@@ -18,7 +18,8 @@ class PictureQuad : public Quad {
   PictureQuad();
   ~PictureQuad() override;
 
-  void Rasterize(QuadRasterizer* rasterizer) const override;
+  void Rasterize(QuadRasterizer* rasterizer,
+                 const SkPoint& offset) const override;
 
   void set_picture(skia::RefPtr<SkPicture> picture) {
     picture_ = std::move(picture);

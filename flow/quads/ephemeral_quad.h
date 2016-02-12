@@ -9,7 +9,9 @@
 #include <vector>
 
 #include "flow/quads/quad.h"
+#include "skia/ext/refptr.h"
 #include "third_party/skia/include/core/SkRect.h"
+#include "third_party/skia/include/gpu/GrFragmentProcessor.h"
 
 namespace flow {
 
@@ -18,14 +20,22 @@ class EphemeralQuad : public Quad {
   EphemeralQuad();
   ~EphemeralQuad() override;
 
-  void Rasterize(QuadRasterizer* rasterizer) const override;
+  void Rasterize(QuadRasterizer* rasterizer,
+                 const SkPoint& offset) const override;
 
   void set_children(std::vector<std::unique_ptr<Quad>> children) {
     children_ = std::move(children);
   }
 
+  void set_rect(SkRect rect) {
+    rect_ = std::move(rect);
+  }
+
+  void ApplyAlpha(int alpha);
+
  private:
-  SkIRect rect_;
+  SkRect rect_;
+  std::vector<skia::RefPtr<GrFragmentProcessor>> fragment_processors_;
   std::vector<std::unique_ptr<Quad>> children_;
 
   DISALLOW_COPY_AND_ASSIGN(EphemeralQuad);

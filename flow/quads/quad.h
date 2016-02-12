@@ -6,6 +6,7 @@
 #define FLOW_QUADS_QUAD_H_
 
 #include "base/macros.h"
+#include "third_party/skia/include/core/SkPoint.h"
 
 namespace flow {
 class QuadRasterizer;
@@ -15,7 +16,8 @@ class Quad {
   Quad();
   virtual ~Quad();
 
-  virtual void Rasterize(QuadRasterizer* rasterizer) const = 0;
+  virtual void Rasterize(QuadRasterizer* rasterizer,
+                         const SkPoint& offset) const = 0;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Quad);

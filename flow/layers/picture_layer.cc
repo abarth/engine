@@ -48,6 +48,8 @@ void PictureLayer::CollectQuads(QuadCollector& collector) {
   quad->set_picture(picture_);
   quad->set_offset(offset_);
   collector.quads.push_back(std::move(quad));
+  collector.bounds.join(picture_->cullRect().makeOffset(offset_.x(),
+                                                        offset_.y()));
 }
 
 }  // namespace flow

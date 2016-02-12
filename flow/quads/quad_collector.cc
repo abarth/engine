@@ -7,7 +7,7 @@
 namespace flow {
 
 QuadCollector::QuadCollector() {
-  bounding_box.setEmpty();
+  bounds.setEmpty();
 }
 
 QuadCollector::~QuadCollector() {

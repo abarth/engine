@@ -15,10 +15,12 @@ PictureQuad::PictureQuad() {
 PictureQuad::~PictureQuad() {
 }
 
-void PictureQuad::Rasterize(QuadRasterizer* rasterizer) const {
+void PictureQuad::Rasterize(QuadRasterizer* rasterizer,
+                            const SkPoint& paint_offset) const {
   auto scope = rasterizer->GetCanvasScope();
   SkAutoCanvasRestore save(scope.canvas(), true);
-  scope.canvas()->translate(offset_.x(), offset_.y());
+  scope.canvas()->translate(offset_.x() + paint_offset.x(),
+                            offset_.y() + paint_offset.y());
   scope.canvas()->drawPicture(picture_.get());
 }
 

@@ -19,7 +19,7 @@ class QuadCollector {
   QuadCollector();
   ~QuadCollector();
 
-  SkRect bounding_box;
+  SkRect bounds;
   std::vector<std::unique_ptr<Quad>> quads;
 
  private:
