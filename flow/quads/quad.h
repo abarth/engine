@@ -9,6 +9,7 @@
 #include "third_party/skia/include/core/SkPoint.h"
 
 namespace flow {
+class QuadCompositor;
 class QuadRasterizer;
 
 class Quad {
@@ -17,7 +18,10 @@ class Quad {
   virtual ~Quad();
 
   virtual void Rasterize(QuadRasterizer* rasterizer,
-                         const SkPoint& offset) const = 0;
+                         const SkPoint& offset) const;
+
+  virtual void Composite(QuadCompositor* compositor,
+                         const SkPoint& offset) const;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Quad);

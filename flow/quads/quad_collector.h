@@ -22,7 +22,15 @@ class QuadCollector {
   SkRect bounds;
   std::vector<std::unique_ptr<Quad>> quads;
 
+  void set_needs_compositing() {
+    needs_compositing_ = true;
+  }
+
+  bool needs_compositing() const { return needs_compositing_; }
+
  private:
+  bool needs_compositing_ = false;
+
   DISALLOW_COPY_AND_ASSIGN(QuadCollector);
 };
 

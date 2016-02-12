@@ -34,6 +34,8 @@ class ChildSceneLayer : public Layer {
   void UpdateScene(mojo::gfx::composition::SceneUpdate* update,
                    mojo::gfx::composition::Node* container) override;
 
+  void CollectQuads(QuadCollector& collector) override;
+
  private:
   SkPoint offset_;
   float device_pixel_ratio_;

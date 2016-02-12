@@ -12,4 +12,10 @@ Quad::Quad() {
 Quad::~Quad() {
 }
 
+void Quad::Rasterize(QuadRasterizer* rasterizer, const SkPoint& offset) const {
+}
+
+void Quad::Composite(QuadCompositor* compositor, const SkPoint& offset) const {
+}
+
 }  // namespace flow

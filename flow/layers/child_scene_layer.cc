@@ -4,6 +4,7 @@
 
 #include "flow/layers/child_scene_layer.h"
 
+#include "flow/quads/child_scene_quad.h"
 #include "mojo/skia/type_converters.h"
 
 namespace flow {
@@ -46,6 +47,19 @@ void ChildSceneLayer::UpdateScene(mojo::gfx::composition::SceneUpdate* update,
   child_node->content_transform = mojo::Transform::From(transform_);
   update->nodes.insert(id, child_node.Pass());
   container->child_node_ids.push_back(id);
+}
+
+void ChildSceneLayer::CollectQuads(QuadCollector& collector) {
+  std::unique_ptr<ChildSceneQuad> quad(new ChildSceneQuad());
+  quad->set_offset(offset_);
+  quad->set_physical_size(physical_size_);
+  quad->set_scene_token(scene_token_.Clone());
+  collector.set_needs_compositing();
+  collector.quads.push_back(std::move(quad));
+  // TODO(abarth): We're mixing physical and logical sizes here.
+  collector.bounds.join(SkRect::MakeXYWH(offset_.x(), offset_.y(),
+                                         physical_size_.width(),
+                                         physical_size_.height()));
 }
 
 }  // namespace flow
