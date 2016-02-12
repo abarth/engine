@@ -22,6 +22,7 @@ class GaneshCanvas {
   ~GaneshCanvas();
 
   void SetGrGLInterface(const GrGLInterface* interface);
+  GrRenderTarget* GetRenderTarget(int32_t fbo, const SkISize& size);
   SkCanvas* GetCanvas(int32_t fbo, const SkISize& size);
 
   bool IsValid();
@@ -30,6 +31,7 @@ class GaneshCanvas {
 
  private:
   skia::RefPtr<GrContext> gr_context_;
+  skia::RefPtr<GrRenderTarget> render_target_;
   skia::RefPtr<SkSurface> sk_surface_;
 
   DISALLOW_COPY_AND_ASSIGN(GaneshCanvas);

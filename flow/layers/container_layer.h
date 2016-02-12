@@ -25,6 +25,8 @@ class ContainerLayer : public Layer {
   void UpdateScene(mojo::gfx::composition::SceneUpdate* update,
                    mojo::gfx::composition::Node* container) override;
 
+  void AppendQuads(std::vector<std::unique_ptr<Quad>>* quads) override;
+
   const std::vector<std::unique_ptr<Layer>>& layers() const { return layers_; }
 
  private:

@@ -5,6 +5,7 @@
 #include "sky/shell/gpu/direct/rasterizer_direct.h"
 
 #include "base/trace_event/trace_event.h"
+#include "flow/quads/quad_rasterizer.h"
 #include "mojo/public/cpp/system/data_pipe.h"
 #include "sky/engine/wtf/PassRefPtr.h"
 #include "sky/engine/wtf/RefPtr.h"
@@ -18,10 +19,14 @@
 #include "ui/gl/gl_share_group.h"
 #include "ui/gl/gl_surface.h"
 
+#define USE_QUADS 1
+
 namespace sky {
 namespace shell {
 
+#if !USE_QUADS
 static const double kOneFrameDuration = 1e3 / 60.0;
+#endif
 
 std::unique_ptr<Rasterizer> Rasterizer::Create() {
   return std::unique_ptr<Rasterizer>(new RasterizerDirect());
@@ -82,6 +87,19 @@ void RasterizerDirect::Draw(uint64_t layer_tree_ptr,
   if (surface_->GetSize() != size)
     surface_->Resize(size);
 
+#if USE_QUADS
+  EnsureGLContext();
+  CHECK(context_->MakeCurrent(surface_.get()));
+  GrRenderTarget* render_target = ganesh_canvas_.GetRenderTarget(
+      surface_->GetBackingFrameBufferObject(), layer_tree->frame_size());
+
+  std::vector<std::unique_ptr<flow::Quad>> quads;
+  layer_tree->root_layer()->AppendQuads(&quads);
+  flow::QuadRasterizer rasterizer(ganesh_canvas_.gr_context(), render_target);
+  rasterizer.GetDrawScope().context()->clear(nullptr, SK_ColorBLACK, true);
+  rasterizer.Rasterize(quads);
+  surface_->SwapBuffers();
+#else
   // There is no way for the compositor to know how long the layer tree
   // construction took. Fortunately, the layer tree does. Grab that time
   // for instrumentation.
@@ -128,6 +146,7 @@ void RasterizerDirect::Draw(uint64_t layer_tree_ptr,
     RefPtr<SkPicture> picture = adoptRef(recoder.endRecordingAsPicture());
     SerializePicture(path, picture.get());
   }
+#endif
 
   callback.Run();
 
