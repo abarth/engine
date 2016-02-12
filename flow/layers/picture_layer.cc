@@ -43,11 +43,11 @@ void PictureLayer::Paint(PaintContext::ScopedFrame& frame) {
   }
 }
 
-void PictureLayer::AppendQuads(std::vector<std::unique_ptr<Quad>>* quads) {
+void PictureLayer::CollectQuads(QuadCollector& collector) {
   std::unique_ptr<PictureQuad> quad(new PictureQuad());
   quad->set_picture(picture_);
   quad->set_offset(offset_);
-  quads->push_back(std::move(quad));
+  collector.quads.push_back(std::move(quad));
 }
 
 }  // namespace flow

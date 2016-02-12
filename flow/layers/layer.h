@@ -11,7 +11,7 @@
 #include "base/logging.h"
 #include "base/macros.h"
 #include "flow/paint_context.h"
-#include "flow/quads/quad.h"
+#include "flow/quads/quad_collector.h"
 #include "mojo/services/gfx/composition/interfaces/scenes.mojom.h"
 #include "skia/ext/refptr.h"
 #include "third_party/skia/include/core/SkCanvas.h"
@@ -43,7 +43,7 @@ class Layer {
   virtual void UpdateScene(mojo::gfx::composition::SceneUpdate* update,
                            mojo::gfx::composition::Node* container);
 
-  virtual void AppendQuads(std::vector<std::unique_ptr<Quad>>* quads);
+  virtual void CollectQuads(QuadCollector& collector);
 
   ContainerLayer* parent() const { return parent_; }
 

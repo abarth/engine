@@ -23,7 +23,7 @@ class PictureLayer : public Layer {
   void Preroll(PrerollContext* frame, const SkMatrix& matrix) override;
   void Paint(PaintContext::ScopedFrame& frame) override;
 
-  void AppendQuads(std::vector<std::unique_ptr<Quad>>* quads) override;
+  void CollectQuads(QuadCollector& collector) override;
 
  private:
   SkPoint offset_;

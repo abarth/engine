@@ -4,6 +4,8 @@
 
 #include "flow/layers/opacity_layer.h"
 
+#include "flow/quads/ephemeral_quad.h"
+
 namespace flow {
 
 OpacityLayer::OpacityLayer() {
@@ -26,6 +28,15 @@ void OpacityLayer::Paint(PaintContext::ScopedFrame& frame) {
   SkAutoCanvasRestore save(&canvas, false);
   canvas.saveLayer(&paint_bounds(), &paint);
   PaintChildren(frame);
+}
+
+void OpacityLayer::CollectQuads(QuadCollector& collector) {
+  QuadCollector children;
+  ContainerLayer::CollectQuads(children);
+
+  std::unique_ptr<EphemeralQuad> quad(new EphemeralQuad());
+  quad->set_children(std::move(children.quads));
+  collector.quads.push_back(std::move(quad));
 }
 
 }  // namespace flow

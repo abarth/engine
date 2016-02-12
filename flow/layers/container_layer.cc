@@ -43,9 +43,9 @@ void ContainerLayer::UpdateScene(mojo::gfx::composition::SceneUpdate* update,
     layer->UpdateScene(update, container);
 }
 
-void ContainerLayer::AppendQuads(std::vector<std::unique_ptr<Quad>>* quads) {
+void ContainerLayer::CollectQuads(QuadCollector& collector) {
   for (auto& layer : layers_)
-    layer->AppendQuads(quads);
+    layer->CollectQuads(collector);
 }
 
 }  // namespace flow

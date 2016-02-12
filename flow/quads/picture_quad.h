@@ -5,6 +5,8 @@
 #ifndef FLOW_QUADS_PICTURE_QUAD_H_
 #define FLOW_QUADS_PICTURE_QUAD_H_
 
+#include <memory>
+
 #include "flow/quads/quad.h"
 #include "skia/ext/refptr.h"
 #include "third_party/skia/include/core/SkPicture.h"
