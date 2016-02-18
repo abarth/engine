@@ -121,8 +121,6 @@ DrawBuffer GetShadowVolume(const Quad& quad) {
   return shadow;
 }
 
-Color kBlack = {{ 0, 0, 0, 1 }};
-
 Scene CreateDemoScene() {
   Scene scene;
   scene.AddObject(Quad{{
@@ -286,24 +284,48 @@ GLuint LoadProgram(const char* vertex_shader_source,
 
 static Scene g_demo_scene;
 static std::vector<GLfloat> g_array_buffer;
-static const int g_array_buffer_stride = 7 * sizeof(GLfloat);
+static DrawBuffer g_shadow_geometry;
 
 static GLuint g_program;
 static GLint g_mvp_matrix;
 static GLint g_position_location;
 static GLint g_color_location;
 
+static GLuint g_vertex_buffer;
+static GLuint g_index_buffer;
+
+static GLuint g_shadow_vertex_buffer;
+static GLuint g_shadow_index_buffer;
+
+static GLuint g_shadow_mask_vertex_buffer;
+static GLuint g_shadow_mask_index_buffer;
+
+static GLfloat g_identity_matrix[] = {
+  1.0f, 0.0f, 0.0f, 0.0f,
+  0.0f, 1.0f, 0.0f, 0.0f,
+  0.0f, 0.0f, 1.0f, 0.0f,
+  0.0f, 0.0f, 0.0f, 1.0f,
+};
+
+static GLfloat g_shadow_mask_verticies[] = {
+  -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+  -1.0f,  1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+   1.0f,  1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+   1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+};
+
+static GLubyte g_shadow_mask_indicies[] = {
+  0, 1, 2,
+  2, 3, 0,
+};
+
 } // namespace
 
 void DrawShadowTest(int width, int height) {
   if (!g_program) {
     g_demo_scene = CreateDemoScene();
-    DrawBuffer buffer = GetShadowVolume(g_demo_scene.quads[0]);
-    for (const Quad& quad : buffer.quads)
-      g_demo_scene.AddObject(std::move(quad), kBlack);
-
     g_array_buffer = g_demo_scene.GetArrayBuffer();
-
+    g_shadow_geometry = GetShadowVolume(g_demo_scene.quads[0]);
 
     g_program = LoadProgram(vertex_shader_source, fragment_shader_source);
     glUseProgram(g_program);
@@ -311,17 +333,30 @@ void DrawShadowTest(int width, int height) {
     g_position_location = glGetAttribLocation(g_program, "a_position");
     g_color_location = glGetAttribLocation(g_program, "a_color");
     glEnableVertexAttribArray(g_position_location);
-    glEnableVertexAttribArray(g_color_location);
 
-    GLuint vertex_buffer = 0;
-    glGenBuffersARB(1, &vertex_buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
+    glGenBuffersARB(1, &g_vertex_buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, g_vertex_buffer);
     glBufferData(GL_ARRAY_BUFFER, g_array_buffer.size() * sizeof(GLfloat), g_array_buffer.data(), GL_STATIC_DRAW);
  
-    GLuint index_buffer = 0;
-    glGenBuffersARB(1, &index_buffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);
+    glGenBuffersARB(1, &g_index_buffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_index_buffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, g_demo_scene.indices.size() * sizeof(Index), g_demo_scene.indices.data(), GL_STATIC_DRAW);
+
+    glGenBuffersARB(1, &g_shadow_vertex_buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, g_shadow_vertex_buffer);
+    glBufferData(GL_ARRAY_BUFFER, g_shadow_geometry.quads.size() * sizeof(Quad), g_shadow_geometry.quads.data(), GL_STATIC_DRAW);
+
+    glGenBuffersARB(1, &g_shadow_index_buffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_shadow_index_buffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, g_shadow_geometry.indices.size() * sizeof(Index), g_shadow_geometry.indices.data(), GL_STATIC_DRAW);
+
+    glGenBuffersARB(1, &g_shadow_mask_vertex_buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, g_shadow_mask_vertex_buffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(g_shadow_mask_verticies), g_shadow_mask_verticies, GL_STATIC_DRAW);
+
+    glGenBuffersARB(1, &g_shadow_mask_index_buffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_shadow_mask_index_buffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(g_shadow_mask_indicies), g_shadow_mask_indicies, GL_STATIC_DRAW);
   }
 
   glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -334,10 +369,69 @@ void DrawShadowTest(int width, int height) {
   mvp.preTranslate(0, 0, -2);
 
   glUniformMatrix4fv(g_mvp_matrix, 1, 0, reinterpret_cast<GLfloat*>(&mvp));
-  glVertexAttribPointer(g_position_location, 3, GL_FLOAT, GL_FALSE, g_array_buffer_stride, 0);
-  glVertexAttribPointer(g_color_location, 4, GL_FLOAT, GL_FALSE,  g_array_buffer_stride, (GLvoid*) (sizeof(float) * 3));
+
+  // Scene geometry.
+
+  glBindBuffer(GL_ARRAY_BUFFER, g_vertex_buffer);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_index_buffer);
+  glEnableVertexAttribArray(g_color_location);
+
+  glVertexAttribPointer(g_position_location, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(GLfloat), 0);
+  glVertexAttribPointer(g_color_location, 4, GL_FLOAT, GL_FALSE,  7 * sizeof(GLfloat), (GLvoid*) (sizeof(float) * 3));
  
   glDrawElements(GL_TRIANGLES, g_demo_scene.indices.size() * sizeof(Index), GL_UNSIGNED_BYTE, 0);
+
+  // Shadows volumes.
+
+  glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+  glDepthMask(GL_FALSE);
+  glEnable(GL_CULL_FACE);
+  glEnable(GL_STENCIL_TEST);
+  glEnable(GL_POLYGON_OFFSET_FILL);
+  glPolygonOffset(0.0f, 100.0f);
+
+  glBindBuffer(GL_ARRAY_BUFFER, g_shadow_vertex_buffer);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_shadow_index_buffer);
+  glDisableVertexAttribArray(g_color_location);
+  glVertexAttribPointer(g_position_location, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
+
+  glCullFace(GL_FRONT);
+  glStencilFunc(GL_ALWAYS, 0x0, 0xff);
+  glStencilOp(GL_KEEP, GL_INCR, GL_KEEP);
+
+  glDrawElements(GL_TRIANGLES, g_shadow_geometry.indices.size() * sizeof(Index), GL_UNSIGNED_BYTE, 0);
+
+  glCullFace(GL_BACK);
+  glStencilFunc(GL_ALWAYS, 0x0, 0xff);
+  glStencilOp(GL_KEEP, GL_DECR, GL_KEEP);
+
+  glDrawElements(GL_TRIANGLES, g_shadow_geometry.indices.size() * sizeof(Index), GL_UNSIGNED_BYTE, 0);
+
+  // Shadows.
+
+  glDisable(GL_POLYGON_OFFSET_FILL);
+  glDisable(GL_CULL_FACE);
+  glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+  glDepthMask(GL_TRUE);
+
+  glStencilFunc(GL_NOTEQUAL, 0x0, 0xff);
+  glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
+
+  glUniformMatrix4fv(g_mvp_matrix, 1, 0, g_identity_matrix);
+  glDisable(GL_DEPTH_TEST);
+
+  glBindBuffer(GL_ARRAY_BUFFER, g_shadow_mask_vertex_buffer);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_shadow_mask_index_buffer);
+  glEnableVertexAttribArray(g_color_location);
+
+  glVertexAttribPointer(g_position_location, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(GLfloat), 0);
+  glVertexAttribPointer(g_color_location, 4, GL_FLOAT, GL_FALSE,  7 * sizeof(GLfloat), (GLvoid*) (sizeof(float) * 3));
+
+  glDrawElements(GL_TRIANGLES, sizeof(g_shadow_mask_indicies), GL_UNSIGNED_BYTE, 0);
+
+  glEnable(GL_DEPTH_TEST);
+
+  glDisable(GL_STENCIL_TEST);
 }
 
 }  // namespace flow
