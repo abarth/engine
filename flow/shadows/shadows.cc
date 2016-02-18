@@ -113,10 +113,15 @@ DrawBuffer GetShadowVolume(const Quad& quad) {
   shadow.AddQuad(quad);
 
   // Sides
-  for (int i = 0; i < 4; ++i) {
-    int j = (i + 1) % 4;
-    shadow.AddQuad(Quad{{ quad.point[i], back[i], quad.point[j], back[j] }});
-  }
+  // shadow.AddQuad(Quad{{ quad.point[0], quad.point[1], back[1], back[0] }});
+
+  // shadow.AddQuad(Quad{{ back[0], back[1], quad.point[1], quad.point[0] }});
+
+
+  shadow.AddQuad(Quad{{ quad.point[0], back[0], back[1], quad.point[1] }});
+  shadow.AddQuad(Quad{{ quad.point[1], back[1], back[2], quad.point[2] }});
+  shadow.AddQuad(Quad{{ quad.point[2], back[2], back[3], quad.point[3] }});
+  shadow.AddQuad(Quad{{ quad.point[3], back[3], back[0], quad.point[0] }});
 
   return shadow;
 }
@@ -362,7 +367,7 @@ void DrawShadowTest(int width, int height) {
   glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
   glEnable(GL_DEPTH_TEST);
   glViewport(0, 0, width, height);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
   float aspect = static_cast<GLfloat>(width) / static_cast<GLfloat>(height);
   SkMatrix44 mvp = CreatePerspective(60.0f, aspect, 1.0f, 20.0f );

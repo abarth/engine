@@ -51,7 +51,7 @@ void RasterizerDirect::ConnectToRasterizer(
 
 void RasterizerDirect::OnAcceleratedWidgetAvailable(gfx::AcceleratedWidget widget) {
   gfx::SurfaceConfiguration config;
-  config.depth_bits = 16;
+  config.depth_bits = 24;
   config.stencil_bits = 8;
   surface_ = gfx::GLSurface::CreateViewGLSurface(widget, config);
   CHECK(surface_) << "GLSurface required.";
