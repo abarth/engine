@@ -40,16 +40,8 @@ struct Color {
   GLfloat data[4];
 };
 
-struct DrawBuffer {
-  std::vector<Quad> quads;
-  std::vector<Index> indices;
-
-  void AddQuad(Quad quad) {
-    GLubyte base = quads.size();
-    quads.push_back(std::move(quad));
-    indices.emplace_back(Index{{ base + 0, base + 1, base + 2 }});
-    indices.emplace_back(Index{{ base + 2, base + 3, base + 0 }});
-  }
+struct TriangleStrip {
+  std::vector<Point> points;
 };
 
 struct Scene {
@@ -86,42 +78,43 @@ struct Scene {
   }
 };
 
-DrawBuffer GetShadowVolume(const Quad& quad) {
-  DrawBuffer shadow;
+TriangleStrip GetShadowVolume(const Quad& quad) {
+  TriangleStrip shadow;
 
   float far = 50.0f;
-  Point light = {{ -2.0f, 5.0f, 5.0f }};
+  Point light = {{ -2.0f, 4.0f, 5.0f }};
 
   Point back[4];
   for (int i = 0; i < 4; i++) {
-    back[i].data[0] = (quad.point[i].data[0] - light.data[0]);
-    back[i].data[1] = (quad.point[i].data[1] - light.data[1]);
-    back[i].data[2] = (quad.point[i].data[2] - light.data[2]);
+    const Point& point = quad.point[i];
+    back[i].data[0] = point.data[0] - light.data[0];
+    back[i].data[1] = point.data[1] - light.data[1];
+    back[i].data[2] = point.data[2] - light.data[2];
     back[i].Normalize();
     back[i].data[0] *= far;
     back[i].data[1] *= far;
     back[i].data[2] *= far;
-    back[i].data[0] += light.data[0];
-    back[i].data[1] += light.data[1];
-    back[i].data[2] += light.data[2];
+    back[i].data[0] += point.data[0];
+    back[i].data[1] += point.data[1];
+    back[i].data[2] += point.data[2];
   }
 
-  // Back cap.
-  shadow.AddQuad(Quad{{ back[3], back[2], back[1], back[0] }});
+  // Shadow volume.
 
-  // Front cap.
-  shadow.AddQuad(quad);
-
-  // Sides
-  // shadow.AddQuad(Quad{{ quad.point[0], quad.point[1], back[1], back[0] }});
-
-  // shadow.AddQuad(Quad{{ back[0], back[1], quad.point[1], quad.point[0] }});
-
-
-  shadow.AddQuad(Quad{{ quad.point[0], back[0], back[1], quad.point[1] }});
-  shadow.AddQuad(Quad{{ quad.point[1], back[1], back[2], quad.point[2] }});
-  shadow.AddQuad(Quad{{ quad.point[2], back[2], back[3], quad.point[3] }});
-  shadow.AddQuad(Quad{{ quad.point[3], back[3], back[0], quad.point[0] }});
+  shadow.points.push_back(quad.point[0]);
+  shadow.points.push_back(quad.point[1]);
+  shadow.points.push_back(quad.point[3]);
+  shadow.points.push_back(quad.point[2]);
+  shadow.points.push_back(back[2]);
+  shadow.points.push_back(quad.point[1]);
+  shadow.points.push_back(back[1]);
+  shadow.points.push_back(quad.point[0]);
+  shadow.points.push_back(back[0]);
+  shadow.points.push_back(quad.point[3]);
+  shadow.points.push_back(back[3]);
+  shadow.points.push_back(back[2]);
+  shadow.points.push_back(back[0]);
+  shadow.points.push_back(back[1]);
 
   return shadow;
 }
@@ -289,7 +282,7 @@ GLuint LoadProgram(const char* vertex_shader_source,
 
 static Scene g_demo_scene;
 static std::vector<GLfloat> g_array_buffer;
-static DrawBuffer g_shadow_geometry;
+static TriangleStrip g_shadow_geometry;
 
 static GLuint g_program;
 static GLint g_mvp_matrix;
@@ -300,7 +293,6 @@ static GLuint g_vertex_buffer;
 static GLuint g_index_buffer;
 
 static GLuint g_shadow_vertex_buffer;
-static GLuint g_shadow_index_buffer;
 
 static GLuint g_shadow_mask_vertex_buffer;
 static GLuint g_shadow_mask_index_buffer;
@@ -349,11 +341,7 @@ void DrawShadowTest(int width, int height) {
 
     glGenBuffersARB(1, &g_shadow_vertex_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, g_shadow_vertex_buffer);
-    glBufferData(GL_ARRAY_BUFFER, g_shadow_geometry.quads.size() * sizeof(Quad), g_shadow_geometry.quads.data(), GL_STATIC_DRAW);
-
-    glGenBuffersARB(1, &g_shadow_index_buffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_shadow_index_buffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, g_shadow_geometry.indices.size() * sizeof(Index), g_shadow_geometry.indices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, g_shadow_geometry.points.size() * sizeof(Point), g_shadow_geometry.points.data(), GL_STATIC_DRAW);
 
     glGenBuffersARB(1, &g_shadow_mask_vertex_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, g_shadow_mask_vertex_buffer);
@@ -364,7 +352,7 @@ void DrawShadowTest(int width, int height) {
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(g_shadow_mask_indicies), g_shadow_mask_indicies, GL_STATIC_DRAW);
   }
 
-  glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+  glClearColor(0.0f, 1.0f, 1.0f, 1.0f);
   glEnable(GL_DEPTH_TEST);
   glViewport(0, 0, width, height);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -395,29 +383,28 @@ void DrawShadowTest(int width, int height) {
   glEnable(GL_POLYGON_OFFSET_FILL);
   glPolygonOffset(0.0f, 100.0f);
 
-  glBindBuffer(GL_ARRAY_BUFFER, g_shadow_vertex_buffer);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_shadow_index_buffer);
   glDisableVertexAttribArray(g_color_location);
+  glBindBuffer(GL_ARRAY_BUFFER, g_shadow_vertex_buffer);
   glVertexAttribPointer(g_position_location, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
 
   glCullFace(GL_FRONT);
   glStencilFunc(GL_ALWAYS, 0x0, 0xff);
   glStencilOp(GL_KEEP, GL_INCR, GL_KEEP);
 
-  glDrawElements(GL_TRIANGLES, g_shadow_geometry.indices.size() * sizeof(Index), GL_UNSIGNED_BYTE, 0);
+  glDrawArrays(GL_TRIANGLE_STRIP, 0, g_shadow_geometry.points.size());
 
   glCullFace(GL_BACK);
   glStencilFunc(GL_ALWAYS, 0x0, 0xff);
   glStencilOp(GL_KEEP, GL_DECR, GL_KEEP);
 
-  glDrawElements(GL_TRIANGLES, g_shadow_geometry.indices.size() * sizeof(Index), GL_UNSIGNED_BYTE, 0);
+  glDrawArrays(GL_TRIANGLE_STRIP, 0, g_shadow_geometry.points.size());
 
   // Shadows.
 
   glDisable(GL_POLYGON_OFFSET_FILL);
   glDisable(GL_CULL_FACE);
   glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-  glDepthMask(GL_TRUE);
+  glDepthMask(GL_FALSE);
 
   glStencilFunc(GL_NOTEQUAL, 0x0, 0xff);
   glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
@@ -437,6 +424,7 @@ void DrawShadowTest(int width, int height) {
   glEnable(GL_DEPTH_TEST);
 
   glDisable(GL_STENCIL_TEST);
+  glDepthMask(GL_TRUE);
 }
 
 }  // namespace flow
