@@ -34,6 +34,8 @@ source_set("flow") {
     "layers/shader_mask_layer.h",
     "layers/transform_layer.cc",
     "layers/transform_layer.h",
+    "shadows/shadows.cc",
+    "shadows/shadows.h",
     "paint_context.cc",
     "paint_context.h",
     "raster_cache.cc",
@@ -45,5 +47,6 @@ source_set("flow") {
     "//mojo/services/gfx/composition/interfaces",
     "//mojo/skia",
     "//skia",
+    "//ui/gl",
   ]
 }
