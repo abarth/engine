@@ -4,15 +4,156 @@
 
 #include "flow/shadows/shadows.h"
 
+#include <memory>
 #include <math.h>
 
 #include "base/logging.h"
+#include "third_party/skia/include/core/SkColor.h"
 #include "third_party/skia/include/utils/SkMatrix44.h"
+#include "ui/gfx/geometry/quad_f.h"
 #include "ui/gl/gl_bindings.h"
 #include "ui/gl/gl_implementation.h"
 
 namespace flow {
 namespace {
+
+struct Point {
+  GLfloat data[3];
+
+  void Normalize() {
+    GLfloat norm = sqrt(data[0] * data[0] + data[1] * data[1] + data[2] * data[2]);
+    data[0] /= norm;
+    data[1] /= norm;
+    data[2] /= norm;
+  }
+};
+
+struct Quad {
+  Point point[4];
+};
+
+struct Index {
+  GLubyte data[3];
+};
+
+struct Color {
+  GLfloat data[4];
+};
+
+struct DrawBuffer {
+  std::vector<Quad> quads;
+  std::vector<Index> indices;
+
+  void AddQuad(Quad quad) {
+    GLubyte base = quads.size();
+    quads.push_back(std::move(quad));
+    indices.emplace_back(Index{{ base + 0, base + 1, base + 2 }});
+    indices.emplace_back(Index{{ base + 2, base + 3, base + 0 }});
+  }
+};
+
+struct Scene {
+  std::vector<Quad> quads;
+  std::vector<Index> indices;
+  std::vector<Color> colors;
+
+  void AddObject(Quad quad, Color color) {
+    GLubyte base = quads.size() * 4;
+    quads.push_back(std::move(quad));
+    colors.push_back(color);
+    indices.emplace_back(Index{{ base + 0, base + 1, base + 2 }});
+    indices.emplace_back(Index{{ base + 2, base + 3, base + 0 }});
+  }
+
+  std::vector<GLfloat> GetArrayBuffer() {
+    std::vector<GLfloat> array_buffer;
+    array_buffer.reserve(quads.size() * 4 * 7);
+    for (size_t i = 0; i < quads.size(); ++i) {
+      const Quad& quad = quads[i];
+      const Color& color = colors[i];
+      for (size_t j = 0; j < 4; ++j) {
+        const Point& point = quad.point[j];
+        array_buffer.push_back(point.data[0]);
+        array_buffer.push_back(point.data[1]);
+        array_buffer.push_back(point.data[2]);
+        array_buffer.push_back(color.data[0]);
+        array_buffer.push_back(color.data[1]);
+        array_buffer.push_back(color.data[2]);
+        array_buffer.push_back(color.data[3]);
+      }
+    }
+    return array_buffer;
+  }
+};
+
+DrawBuffer GetShadowVolume(const Quad& quad) {
+  DrawBuffer shadow;
+
+  float far = 50.0f;
+  Point light = {{ -2.0f, 5.0f, 5.0f }};
+
+  Point back[4];
+  for (int i = 0; i < 4; i++) {
+    back[i].data[0] = (quad.point[i].data[0] - light.data[0]);
+    back[i].data[1] = (quad.point[i].data[1] - light.data[1]);
+    back[i].data[2] = (quad.point[i].data[2] - light.data[2]);
+    back[i].Normalize();
+    back[i].data[0] *= far;
+    back[i].data[1] *= far;
+    back[i].data[2] *= far;
+    back[i].data[0] += light.data[0];
+    back[i].data[1] += light.data[1];
+    back[i].data[2] += light.data[2];
+  }
+
+  // Back cap.
+  shadow.AddQuad(Quad{{ back[3], back[2], back[1], back[0] }});
+
+  // Front cap.
+  shadow.AddQuad(quad);
+
+  // Sides
+  for (int i = 0; i < 4; ++i) {
+    int j = (i + 1) % 4;
+    shadow.AddQuad(Quad{{ quad.point[i], back[i], quad.point[j], back[j] }});
+  }
+
+  return shadow;
+}
+
+Color kBlack = {{ 0, 0, 0, 1 }};
+
+Scene CreateDemoScene() {
+  Scene scene;
+  scene.AddObject(Quad{{
+    {{  1, -1,  0 }},
+    {{  1,  1,  0 }},
+    {{ -1,  1,  0 }},
+    {{ -1, -1,  0 }},
+  }},
+  Color{
+    { 0, 1, 0, 1 },
+  });
+  scene.AddObject(Quad{{
+    {{  2, -2, -1 }},
+    {{  2,  2, -1 }},
+    {{ -2,  2, -1 }},
+    {{ -2, -2, -1 }},
+  }},
+  Color{
+    { 0, 1, 1, 1 }
+  });
+  scene.AddObject(Quad{{
+    {{  10, -10, -2 }},
+    {{  10,  10, -2 }},
+    {{ -10,  10, -2 }},
+    {{ -10, -10, -2 }},
+  }},
+  Color{
+    { 1, 1, 1, 1 }
+  });
+  return scene;
+}
 
 SkMatrix44 CreateFrustum(float left,
                          float right,
@@ -73,7 +214,7 @@ const char vertex_shader_source[] =
 
 
 const char fragment_shader_source[] =
-    "varying vec4 v_color;                               \n"
+    "varying lowp vec4 v_color;                          \n"
     "void main()                                         \n"
     "{                                                   \n"
     "   gl_FragColor = v_color;                          \n"
@@ -143,30 +284,9 @@ GLuint LoadProgram(const char* vertex_shader_source,
   return program_object;
 }
 
-struct Vertex {
-  float Position[3];
-  float Color[4];
-};
- 
-const Vertex g_vertices[] = {
-  {{  1, -1,  0 }, { 0, 1, 0, 1 }},
-  {{  1,  1,  0 }, { 0, 1, 0, 1 }},
-  {{ -1,  1,  0 }, { 0, 1, 0, 1 }},
-  {{ -1, -1,  0 }, { 0, 1, 0, 1 }},
-
-  {{  2, -2,  -1 }, { 0, 1, 1, 1 }},
-  {{  2,  2,  -1 }, { 0, 1, 1, 1 }},
-  {{ -2,  2,  -1 }, { 0, 1, 1, 1 }},
-  {{ -2, -2,  -1 }, { 0, 1, 1, 1 }},
-};
- 
-const GLubyte g_indices[] = {
-  0, 1, 2,
-  2, 3, 0,
-
-  4, 5, 6,
-  6, 7, 4,
-};
+static Scene g_demo_scene;
+static std::vector<GLfloat> g_array_buffer;
+static const int g_array_buffer_stride = 7 * sizeof(GLfloat);
 
 static GLuint g_program;
 static GLint g_mvp_matrix;
@@ -177,6 +297,14 @@ static GLint g_color_location;
 
 void DrawShadowTest(int width, int height) {
   if (!g_program) {
+    g_demo_scene = CreateDemoScene();
+    DrawBuffer buffer = GetShadowVolume(g_demo_scene.quads[0]);
+    for (const Quad& quad : buffer.quads)
+      g_demo_scene.AddObject(std::move(quad), kBlack);
+
+    g_array_buffer = g_demo_scene.GetArrayBuffer();
+
+
     g_program = LoadProgram(vertex_shader_source, fragment_shader_source);
     glUseProgram(g_program);
     g_mvp_matrix = glGetUniformLocation(g_program, "u_mvpMatrix");
@@ -188,12 +316,12 @@ void DrawShadowTest(int width, int height) {
     GLuint vertex_buffer = 0;
     glGenBuffersARB(1, &vertex_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertices), g_vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, g_array_buffer.size() * sizeof(GLfloat), g_array_buffer.data(), GL_STATIC_DRAW);
  
     GLuint index_buffer = 0;
     glGenBuffersARB(1, &index_buffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(g_indices), g_indices, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, g_demo_scene.indices.size() * sizeof(Index), g_demo_scene.indices.data(), GL_STATIC_DRAW);
   }
 
   glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -206,10 +334,10 @@ void DrawShadowTest(int width, int height) {
   mvp.preTranslate(0, 0, -2);
 
   glUniformMatrix4fv(g_mvp_matrix, 1, 0, reinterpret_cast<GLfloat*>(&mvp));
-  glVertexAttribPointer(g_position_location, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
-  glVertexAttribPointer(g_color_location, 4, GL_FLOAT, GL_FALSE,  sizeof(Vertex), (GLvoid*) (sizeof(float) * 3));
+  glVertexAttribPointer(g_position_location, 3, GL_FLOAT, GL_FALSE, g_array_buffer_stride, 0);
+  glVertexAttribPointer(g_color_location, 4, GL_FLOAT, GL_FALSE,  g_array_buffer_stride, (GLvoid*) (sizeof(float) * 3));
  
-  glDrawElements(GL_TRIANGLES, arraysize(g_indices), GL_UNSIGNED_BYTE, 0);
+  glDrawElements(GL_TRIANGLES, g_demo_scene.indices.size() * sizeof(Index), GL_UNSIGNED_BYTE, 0);
 }
 
 }  // namespace flow

@@ -6,6 +6,6 @@
 // This file generated. Do not modify or check into version control.
 //
 
-DART_SDK_PATH=/path/to/dart/sdk
-FLUTTER_APPLICATION_PATH=path/to/flutter/application
-FLUTTER_ROOT=/path/to/flutter/root
+DART_SDK_PATH=/Users/abarth/git/flutter/engine/src/third_party/dart-sdk/dart-sdk
+FLUTTER_APPLICATION_PATH=/Users/abarth/git/flutter/flutter/examples/stocks
+FLUTTER_ROOT=/Users/abarth/git/flutter/flutter
