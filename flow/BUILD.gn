@@ -48,5 +48,6 @@ source_set("flow") {
     "//mojo/skia",
     "//skia",
     "//ui/gl",
+    "//vfx",
   ]
 }
