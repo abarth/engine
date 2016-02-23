@@ -20,4 +20,4 @@ TriangleStrip::TriangleStrip(TriangleStrip&& other)
   : data_(std::move(other.data_)) {
 }
 
-}  // namespace
+}  // namespace vfx

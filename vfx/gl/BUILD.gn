@@ -2,9 +2,16 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-group("vfx") {
+source_set("gl") {
+  sources = [
+    "program.cc",
+    "program.h",
+    "shader.cc",
+    "shader.h",
+  ]
+
   deps = [
-    "//vfx/geometry",
-    "//vfx/gl",
+    "//base",
+    "//ui/gl",
   ]
 }

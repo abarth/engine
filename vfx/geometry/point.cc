@@ -16,4 +16,4 @@ void Point::Move(const Offset& offset) {
   data_[2] += offset.dz();
 }
 
-}  // namespace
+}  // namespace vfx

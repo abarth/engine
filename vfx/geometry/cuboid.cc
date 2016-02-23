@@ -28,4 +28,4 @@ TriangleStrip Cuboid::Tessellate() {
   return TriangleStrip(std::move(points));
 }
 
-}  // namespace
+}  // namespace vfx

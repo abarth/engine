@@ -19,4 +19,4 @@ void Offset::Normalize() {
   data_[2] /= norm;
 }
 
-}  // namespace
+}  // namespace vfx

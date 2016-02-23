@@ -39,4 +39,4 @@ Quad Quad::ProjectDistanceFromSource(const Point& source, double distance) {
               source + ray[3]);
 }
 
-}  // namespace
+}  // namespace vfx
