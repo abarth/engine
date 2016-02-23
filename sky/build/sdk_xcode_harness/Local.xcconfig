@@ -7,5 +7,5 @@
 //
 
 DART_SDK_PATH=/Users/abarth/git/flutter/engine/src/third_party/dart-sdk/dart-sdk
-FLUTTER_APPLICATION_PATH=/Users/abarth/git/flutter/flutter/examples/stocks
+FLUTTER_APPLICATION_PATH=/Users/abarth/git/flutter/flutter/examples/material_gallery
 FLUTTER_ROOT=/Users/abarth/git/flutter/flutter
