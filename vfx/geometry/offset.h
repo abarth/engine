@@ -12,7 +12,7 @@ namespace vfx {
 class Offset {
  public:
   Offset() { memset(data_, 0, sizeof(data_)); }
-  Offset(float data[3]) { memcpy(data_, data, sizeof(data_)); }
+  explicit Offset(float data[3]) { memcpy(data_, data, sizeof(data_)); }
   Offset(float dx, float dy, float dz) {
     data_[0] = dx;
     data_[1] = dy;

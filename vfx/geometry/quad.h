@@ -15,7 +15,7 @@ class Offset;
 class Quad {
  public:
   Quad() { memset(data_, 0, sizeof(data_)); }
-  Quad(Point data[4]) { memcpy(data_, data, sizeof(data_)); }
+  explicit Quad(Point data[4]) { memcpy(data_, data, sizeof(data_)); }
   Quad(const Point& p1, const Point& p2, const Point& p3, const Point& p4) {
     data_[0] = p1;
     data_[1] = p2;

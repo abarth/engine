@@ -14,7 +14,7 @@ namespace vfx {
 class Point {
  public:
   Point() { memset(data_, 0, sizeof(data_)); }
-  Point(float data[3]) { memcpy(data_, data, sizeof(data_)); }
+  explicit Point(float data[3]) { memcpy(data_, data, sizeof(data_)); }
   Point(float x, float y, float z) {
     data_[0] = x;
     data_[1] = y;

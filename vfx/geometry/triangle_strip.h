@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef VFX_TRIANGLE_STRIP_H_
-#define VFX_TRIANGLE_STRIP_H_
+#ifndef VFX_GEOMETRY_TRIANGLE_STRIP_H_
+#define VFX_GEOMETRY_TRIANGLE_STRIP_H_
 
 #include <memory>
 #include <vector>
@@ -16,7 +16,7 @@ class TriangleStrip {
  public:
   TriangleStrip();
   ~TriangleStrip();
-  TriangleStrip(std::vector<Point> data);
+  explicit TriangleStrip(std::vector<Point> data);
 
   TriangleStrip(const TriangleStrip& other) = delete;
   TriangleStrip(TriangleStrip&& other);
@@ -36,4 +36,4 @@ class TriangleStrip {
 
 }  // namespace vfx
 
-#endif  // VFX_TRIANGLE_STRIP_H_
+#endif  // VFX_GEOMETRY_TRIANGLE_STRIP_H_
