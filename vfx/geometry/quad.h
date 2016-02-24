@@ -37,7 +37,7 @@ class Quad {
   void set_p4(const Point& p4) { data_[3] = p4; }
 
   void Move(const Offset& offset);
-  Quad ProjectDistanceFromSource(const Point& source, double distance);
+  Quad ProjectDistanceFromSource(const Point& source, double distance) const;
 
  private:
   Point data_[4];

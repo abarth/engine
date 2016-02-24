@@ -4,6 +4,8 @@
 
 source_set("gl") {
   sources = [
+    "element_binding.cc",
+    "element_binding.h",
     "program.cc",
     "program.h",
     "shader.cc",
@@ -12,6 +14,9 @@ source_set("gl") {
 
   deps = [
     "//base",
+  ]
+
+  public_deps = [
     "//ui/gl",
   ]
 }

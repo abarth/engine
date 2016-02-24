@@ -22,10 +22,7 @@ class TriangleStrip {
   TriangleStrip(TriangleStrip&& other);
 
   TriangleStrip& operator=(const TriangleStrip& other) = delete;
-  TriangleStrip& operator=(TriangleStrip&& other) {
-    data_ = std::move(other.data_);
-    return *this;
-  }
+  TriangleStrip& operator=(TriangleStrip&& other);
 
   const Point* data() const { return data_.data(); }
   size_t size() const { return data_.size(); }

@@ -15,7 +15,8 @@ void Quad::Move(const Offset& offset) {
   data_[3].Move(offset);
 }
 
-Quad Quad::ProjectDistanceFromSource(const Point& source, double distance) {
+Quad Quad::ProjectDistanceFromSource(const Point& source,
+                                     double distance) const {
   Offset ray[4] = {
     p1() - source,
     p2() - source,

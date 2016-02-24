@@ -28,11 +28,13 @@ class ElementArray {
     return *this;
   }
 
+  typedef uint8_t Index;
+
   void AddVertex(Vertex vertex) {
     vertices_.push_back(std::move(vertex));
   }
 
-  void AddIndices(uint8_t a, uint8_t b, uint8_t c) {
+  void AddIndices(Index a, Index b, Index c) {
     indices_.push_back(a);
     indices_.push_back(b);
     indices_.push_back(c);
@@ -67,15 +69,15 @@ class ElementArray {
     indices_.push_back(base + 0);
   }
 
-  const Vertex* vertices() const { return vertices_.data(); }
-  size_t verticesSize() const { return vertices_.size(); }
+  const Vertex* vertex_data() const { return vertices_.data(); }
+  size_t vertex_count() const { return vertices_.size(); }
 
-  const uint16_t* indices() const { return indices_.data(); }
-  size_t indicesSize() const { return indices_.size(); }
+  const Index* index_data() const { return indices_.data(); }
+  size_t index_count() const { return indices_.size(); }
 
  private:
   std::vector<Vertex> vertices_;
-  std::vector<uint16_t> indices_;
+  std::vector<Index> indices_;
 };
 
 }  // namespace vfx

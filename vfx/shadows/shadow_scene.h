@@ -10,6 +10,7 @@
 #include "vfx/geometry/color.h"
 #include "vfx/geometry/element_array.h"
 #include "vfx/geometry/quad.h"
+#include "vfx/geometry/triangle_strip.h"
 
 namespace vfx {
 
@@ -28,9 +29,17 @@ class ShadowScene {
   explicit ShadowScene(std::vector<Object> objects);
   ~ShadowScene();
 
-  ElementArray<Vertex> BuildElementArray();
+  ShadowScene(const ShadowScene& other) = delete;
+  ShadowScene(ShadowScene&& other);
+
+  ShadowScene& operator=(const ShadowScene& other) = delete;
+  ShadowScene& operator=(ShadowScene&& other);
+
+  ElementArray<Vertex> BuildGeometry();
+  TriangleStrip BuildShadowVolume();
 
  private:
+  Point light_;
   std::vector<Object> objects_;
 };
 

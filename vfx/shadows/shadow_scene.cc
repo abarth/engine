@@ -6,26 +6,50 @@
 
 #include <memory>
 
+#include "vfx/geometry/cuboid.h"
+
 namespace vfx {
+namespace {
+
+const float kFar = 50.0f;
+
+}  // namespace
 
 ShadowScene::ShadowScene(std::vector<Object> objects)
   : objects_(std::move(objects)) {
 }
 
+ShadowScene::ShadowScene(ShadowScene&& other)
+  : objects_(std::move(other.objects_)) {
+}
+
 ShadowScene::~ShadowScene() {
 }
 
-ElementArray<ShadowScene::Vertex> ShadowScene::BuildElementArray() {
+ShadowScene& ShadowScene::operator=(ShadowScene&& other) {
+  objects_ = std::move(other.objects_);
+  return *this;
+}
+
+ElementArray<ShadowScene::Vertex> ShadowScene::BuildGeometry() {
   ElementArray<Vertex> array;
 
   for (const Object& object : objects_) {
-    array.AddQuad(Vertex{ object.quad.p1(), object.color },
-                  Vertex{ object.quad.p2(), object.color },
-                  Vertex{ object.quad.p3(), object.color },
-                  Vertex{ object.quad.p4(), object.color });
+    array.AddQuad({ object.quad.p1(), object.color },
+                  { object.quad.p2(), object.color },
+                  { object.quad.p3(), object.color },
+                  { object.quad.p4(), object.color });
   }
 
   return array;
+}
+
+TriangleStrip ShadowScene::BuildShadowVolume() {
+  if (objects_.empty())
+    return TriangleStrip();
+  const Quad& front = objects_[0].quad;
+  Quad back = front.ProjectDistanceFromSource(light_, kFar);
+  return Cuboid(front, back).Tessellate();
 }
 
 }  // namespace vfx

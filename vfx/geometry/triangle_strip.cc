@@ -20,4 +20,9 @@ TriangleStrip::TriangleStrip(TriangleStrip&& other)
   : data_(std::move(other.data_)) {
 }
 
+TriangleStrip& TriangleStrip::operator=(TriangleStrip&& other) {
+  data_ = std::move(other.data_);
+  return *this;
+}
+
 }  // namespace vfx

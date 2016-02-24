@@ -7,6 +7,8 @@
 
 #include <memory>
 
+#include "vfx/geometry/offset.h"
+
 namespace vfx {
 
 class Matrix {
@@ -16,10 +18,10 @@ class Matrix {
 
   const float* data() const { return &data_[0][0]; }
 
-  float get(size_t i, size_t j) const { return data_[i][j]; }
+  float get(size_t col, size_t row) const { return data_[col][row]; }
 
-  void set(size_t i, size_t j, float value) {
-    data_[i][j] = value;
+  void set(size_t col, size_t row, float value) {
+    data_[col][row] = value;
   }
 
   void SetZero();
@@ -34,6 +36,9 @@ class Matrix {
                       float aspect,
                       float near_z,
                       float far_z);
+
+  void PreTranslate(const Offset& offset);
+  void PostTranslate(const Offset& offset);
 
  private:
   float data_[4][4];
