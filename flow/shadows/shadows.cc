@@ -48,7 +48,9 @@ void DrawShadowTest(int width, int height) {
       vfx::Color(1, 1, 1, 1),
     });
 
-    renderer = new vfx::ShadowRenderer(vfx::ShadowScene(std::move(objects)));
+    vfx::ShadowScene scene(std::move(objects));
+    scene.set_light(vfx::Point(-2.0f, 4.0f, 5.0f));
+    renderer = new vfx::ShadowRenderer(std::move(scene));
     renderer->PrepareToDraw();
   }
 

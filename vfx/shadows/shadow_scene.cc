@@ -20,13 +20,15 @@ ShadowScene::ShadowScene(std::vector<Object> objects)
 }
 
 ShadowScene::ShadowScene(ShadowScene&& other)
-  : objects_(std::move(other.objects_)) {
+  : light_(other.light_),
+    objects_(std::move(other.objects_)) {
 }
 
 ShadowScene::~ShadowScene() {
 }
 
 ShadowScene& ShadowScene::operator=(ShadowScene&& other) {
+  light_ = other.light_;
   objects_ = std::move(other.objects_);
   return *this;
 }

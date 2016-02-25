@@ -35,6 +35,8 @@ class ShadowScene {
   ShadowScene& operator=(const ShadowScene& other) = delete;
   ShadowScene& operator=(ShadowScene&& other);
 
+  void set_light(Point light) { light_ = light; }
+
   ElementArrayBuffer<Vertex> BuildGeometry();
   ArrayBuffer<Point> BuildShadowVolume();
 

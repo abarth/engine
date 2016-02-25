@@ -18,8 +18,10 @@ class ArrayBuffer {
  public:
   ArrayBuffer() : mode_(GL_TRIANGLE_STRIP), vertex_buffer_(0) { }
   ~ArrayBuffer() {
-    if (vertex_buffer_)
+    if (vertex_buffer_) {
+      LOG(INFO) << "Deleting";
       glDeleteBuffersARB(1, &vertex_buffer_);
+    }
   }
 
   ArrayBuffer(GLenum mode, std::vector<Vertex> data)
