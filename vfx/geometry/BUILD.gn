@@ -8,8 +8,6 @@ source_set("geometry") {
     "color.h",
     "cuboid.cc",
     "cuboid.h",
-    "element_array.cc",
-    "element_array.h",
     "matrix.cc",
     "matrix.h",
     "offset.cc",
@@ -18,7 +16,5 @@ source_set("geometry") {
     "point.h",
     "quad.cc",
     "quad.h",
-    "triangle_strip.cc",
-    "triangle_strip.h",
   ]
 }

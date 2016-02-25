@@ -5,8 +5,10 @@
 #ifndef VFX_GEOMETRY_CUBOID_H_
 #define VFX_GEOMETRY_CUBOID_H_
 
+#include <vector>
+
+#include "vfx/geometry/point.h"
 #include "vfx/geometry/quad.h"
-#include "vfx/geometry/triangle_strip.h"
 
 namespace vfx {
 
@@ -24,7 +26,7 @@ class Cuboid {
   void set_top(const Quad& top) { top_ = top; }
   void set_bottom(const Quad& bottom) { bottom_ = bottom; }
 
-  TriangleStrip Tessellate();
+  std::vector<Point> Tessellate();
 
  private:
   Quad top_;

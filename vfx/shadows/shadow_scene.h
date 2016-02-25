@@ -8,9 +8,9 @@
 #include <vector>
 
 #include "vfx/geometry/color.h"
-#include "vfx/geometry/element_array.h"
 #include "vfx/geometry/quad.h"
-#include "vfx/geometry/triangle_strip.h"
+#include "vfx/gl/array_buffer.h"
+#include "vfx/gl/element_array_buffer.h"
 
 namespace vfx {
 
@@ -35,8 +35,8 @@ class ShadowScene {
   ShadowScene& operator=(const ShadowScene& other) = delete;
   ShadowScene& operator=(ShadowScene&& other);
 
-  ElementArray<Vertex> BuildGeometry();
-  TriangleStrip BuildShadowVolume();
+  ElementArrayBuffer<Vertex> BuildGeometry();
+  ArrayBuffer<Point> BuildShadowVolume();
 
  private:
   Point light_;

@@ -7,9 +7,8 @@
 
 #include <memory>
 
-#include "vfx/geometry/element_array.h"
-#include "vfx/geometry/triangle_strip.h"
-#include "vfx/gl/element_binding.h"
+#include "vfx/gl/array_buffer.h"
+#include "vfx/gl/element_array_buffer.h"
 #include "vfx/shadows/shadow_scene.h"
 #include "vfx/shadows/solid_quad_program.h"
 
@@ -27,9 +26,9 @@ class ShadowRenderer {
   ShadowScene scene_;
 
   std::unique_ptr<SolidQuadProgram> quad_program_;
-  ElementArray<ShadowScene::Vertex> geometry_;
-  TriangleStrip shadow_volume_;
-  ElementBinding geometry_binding_;
+  ElementArrayBuffer<ShadowScene::Vertex> geometry_;
+  ArrayBuffer<Point> shadow_;
+  ElementArrayBuffer<ShadowScene::Vertex> shadow_mask_;
 };
 
 }  // namespace vfx

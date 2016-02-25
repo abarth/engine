@@ -31,8 +31,8 @@ ShadowScene& ShadowScene::operator=(ShadowScene&& other) {
   return *this;
 }
 
-ElementArray<ShadowScene::Vertex> ShadowScene::BuildGeometry() {
-  ElementArray<Vertex> array;
+ElementArrayBuffer<ShadowScene::Vertex> ShadowScene::BuildGeometry() {
+  ElementArrayBuffer<Vertex> array;
 
   for (const Object& object : objects_) {
     array.AddQuad({ object.quad.p1(), object.color },
@@ -44,12 +44,13 @@ ElementArray<ShadowScene::Vertex> ShadowScene::BuildGeometry() {
   return array;
 }
 
-TriangleStrip ShadowScene::BuildShadowVolume() {
+ArrayBuffer<Point> ShadowScene::BuildShadowVolume() {
   if (objects_.empty())
-    return TriangleStrip();
+    return ArrayBuffer<Point>();
   const Quad& front = objects_[0].quad;
   Quad back = front.ProjectDistanceFromSource(light_, kFar);
-  return Cuboid(front, back).Tessellate();
+  return ArrayBuffer<Point>(GL_TRIANGLE_STRIP,
+                            Cuboid(front, back).Tessellate());
 }
 
 }  // namespace vfx

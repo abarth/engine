@@ -6,7 +6,7 @@
 
 namespace vfx {
 
-TriangleStrip Cuboid::Tessellate() {
+std::vector<Point> Cuboid::Tessellate() {
   std::vector<Point> points;
   points.reserve(14);
 
@@ -25,7 +25,7 @@ TriangleStrip Cuboid::Tessellate() {
   points.push_back(bottom_[0]);
   points.push_back(bottom_[1]);
 
-  return TriangleStrip(std::move(points));
+  return points;
 }
 
 }  // namespace vfx
