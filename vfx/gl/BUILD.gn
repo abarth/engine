@@ -6,6 +6,8 @@ source_set("gl") {
   sources = [
     "array_buffer.h",
     "element_array_buffer.h",
+    "frame_buffer.cc",
+    "frame_buffer.h",
     "program.cc",
     "program.h",
     "shader.cc",

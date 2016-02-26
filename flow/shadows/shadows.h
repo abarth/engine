@@ -7,7 +7,7 @@
 
 namespace flow {
 
-void DrawShadowTest(int width, int height);
+void DrawShadowTest(int width, int height, unsigned int fbo);
 
 }  // namespace flow
 

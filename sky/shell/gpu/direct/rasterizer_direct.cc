@@ -96,7 +96,7 @@ void RasterizerDirect::Draw(uint64_t layer_tree_ptr,
     // layer_tree->Raster(frame);
     // canvas->flush();
 
-    flow::DrawShadowTest(size.width(), size.height());
+    flow::DrawShadowTest(size.width(), size.height(), surface_->GetBackingFrameBufferObject());
     surface_->SwapBuffers();
   }
 

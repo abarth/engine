@@ -17,7 +17,7 @@ static vfx::ShadowRenderer* renderer = nullptr;
 
 } // namespace
 
-void DrawShadowTest(int width, int height) {
+void DrawShadowTest(int width, int height, unsigned int fbo) {
   if (!renderer) {
     std::vector<vfx::ShadowScene::Object> objects;
     objects.push_back({
@@ -54,6 +54,7 @@ void DrawShadowTest(int width, int height) {
     renderer->PrepareToDraw();
   }
 
+  renderer->set_target_fbo(fbo);
   renderer->Draw(width, height);
 }
 

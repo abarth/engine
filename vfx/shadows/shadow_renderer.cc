@@ -35,6 +35,10 @@ void ShadowRenderer::PrepareToDraw() {
 }
 
 void ShadowRenderer::Draw(int width, int height) {
+  // if (!frame_buffer_)
+  //   frame_buffer_.reset(new FrameBuffer(width, height));
+
+  // frame_buffer_->Bind();
   glClearColor(0.5f, 0.0f, 0.0f, 1.0f);
   glEnable(GL_DEPTH_TEST);
   glViewport(0, 0, width, height);
@@ -56,6 +60,11 @@ void ShadowRenderer::Draw(int width, int height) {
   glVertexAttribPointer(quad_program_->position(), 3, GL_FLOAT, GL_FALSE, sizeof(ShadowScene::Vertex), 0);
   glVertexAttribPointer(quad_program_->color(), 4, GL_FLOAT, GL_FALSE, sizeof(ShadowScene::Vertex), (GLvoid*) (sizeof(GLfloat) * 3));
   geometry_.Draw();
+
+
+  // glBindFramebufferEXT(GL_FRAMEBUFFER, fbo_);
+
+
 
   // Shadows volumes
 
