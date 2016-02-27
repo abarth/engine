@@ -67,7 +67,7 @@ Texture& Texture::operator=(Texture&& other) {
   return *this;
 }
 
-void Texture::Bind() {
+void Texture::Bind() const {
   glBindTexture(GL_TEXTURE_2D, id_);
 }
 

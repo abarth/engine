@@ -31,10 +31,10 @@ void main()
 const char kFragmentShaderSource[] = R"GLSL(
 varying lowp vec4 v_color;
 varying lowp vec2 v_tex_coord;
-uniform sampler2D texture;
+uniform sampler2D u_texture;
 
 void main(void) {
-    gl_FragColor = v_color * texture2D(texture, v_tex_coord);
+    gl_FragColor = v_color * texture2D(u_texture, v_tex_coord);
 }
 )GLSL";
 
@@ -44,13 +44,14 @@ TextureProgram::TextureProgram()
   : vertex_shader_(GL_VERTEX_SHADER, kVertexShaderSource),
     fragment_shader_(GL_FRAGMENT_SHADER, kFragmentShaderSource),
     program_(&vertex_shader_, &fragment_shader_),
-    transform_(glGetUniformLocation(program_.id(), "u_transform")),
-    position_(glGetAttribLocation(program_.id(), "a_position")),
-    color_(glGetAttribLocation(program_.id(), "a_color")),
-    tex_coord_(glGetAttribLocation(program_.id(), "a_tex_coord")) {
-  glEnableVertexAttribArray(position_);
-  glEnableVertexAttribArray(color_);
-  glEnableVertexAttribArray(tex_coord_);
+    u_transform_(glGetUniformLocation(program_.id(), "u_transform")),
+    u_texture_(glGetUniformLocation(program_.id(), "u_texture")),
+    a_position_(glGetAttribLocation(program_.id(), "a_position")),
+    a_color_(glGetAttribLocation(program_.id(), "a_color")),
+    a_tex_coord_(glGetAttribLocation(program_.id(), "a_tex_coord")) {
+  glEnableVertexAttribArray(a_position_);
+  glEnableVertexAttribArray(a_color_);
+  glEnableVertexAttribArray(a_tex_coord_);
 }
 
 TextureProgram::~TextureProgram() {

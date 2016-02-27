@@ -27,20 +27,18 @@ class ColorProgram {
 
   GLuint id() const { return program_.id(); }
 
-  GLint transform() const { return transform_; }
-  GLint position() const { return position_; }
-  GLint color() const { return color_; }
-
   template<typename Buffer>
   void Draw(const Matrix& transform, const Buffer& geometry) {
     const GLvoid* kPositionOffset = nullptr;
     const GLvoid* kColorOffset = reinterpret_cast<GLvoid*>(sizeof(GLfloat) * 3);
 
     glUseProgram(program_.id());
-    glUniformMatrix4fv(transform_, 1, GL_FALSE, transform.data());
+    glUniformMatrix4fv(u_transform_, 1, GL_FALSE, transform.data());
     geometry.Bind();
-    glVertexAttribPointer(position_, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), kPositionOffset);
-    glVertexAttribPointer(color_, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), kColorOffset);
+    glVertexAttribPointer(a_position_, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                          kPositionOffset);
+    glVertexAttribPointer(a_color_, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                          kColorOffset);
     geometry.Draw();
   }
 
@@ -49,9 +47,9 @@ class ColorProgram {
   Shader fragment_shader_;
   Program program_;
 
-  GLint transform_;
-  GLint position_;
-  GLint color_;
+  GLint u_transform_;
+  GLint a_position_;
+  GLint a_color_;
 
   DISALLOW_COPY_AND_ASSIGN(ColorProgram);
 };

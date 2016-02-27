@@ -22,12 +22,15 @@ class FrameBuffer {
   FrameBuffer(FrameBuffer&& other);
   FrameBuffer& operator=(FrameBuffer&& other);
 
-  void Bind();
+  void Bind() const;
   Texture TakeColor();
   Texture TakeDepth();
 
   bool is_null() const { return id_ == 0; }
   GLuint id() const { return id_; }
+
+  const Texture& color() const { return color_; }
+  const Texture& depth() const { return depth_; }
 
  private:
   GLuint id_;

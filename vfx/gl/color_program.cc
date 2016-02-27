@@ -39,11 +39,11 @@ ColorProgram::ColorProgram()
   : vertex_shader_(GL_VERTEX_SHADER, kVertexShaderSource),
     fragment_shader_(GL_FRAGMENT_SHADER, kFragmentShaderSource),
     program_(&vertex_shader_, &fragment_shader_),
-    transform_(glGetUniformLocation(program_.id(), "u_transform")),
-    position_(glGetAttribLocation(program_.id(), "a_position")),
-    color_(glGetAttribLocation(program_.id(), "a_color")) {
-  glEnableVertexAttribArray(position_);
-  glEnableVertexAttribArray(color_);
+    u_transform_(glGetUniformLocation(program_.id(), "u_transform")),
+    a_position_(glGetAttribLocation(program_.id(), "a_position")),
+    a_color_(glGetAttribLocation(program_.id(), "a_color")) {
+  glEnableVertexAttribArray(a_position_);
+  glEnableVertexAttribArray(a_color_);
 }
 
 ColorProgram::~ColorProgram() {

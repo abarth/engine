@@ -36,7 +36,7 @@ class Texture {
   bool is_null() const { return id_ == 0; }
   GLuint id() const { return id_; }
 
-  void Bind();
+  void Bind() const;
 
  private:
   GLuint id_;

@@ -51,7 +51,7 @@ FrameBuffer& FrameBuffer::operator=(FrameBuffer&& other) {
   return *this;
 }
 
-void FrameBuffer::Bind() {
+void FrameBuffer::Bind() const {
   glBindFramebufferEXT(GL_FRAMEBUFFER, id_);
 }
 

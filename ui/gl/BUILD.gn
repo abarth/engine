@@ -41,6 +41,8 @@ source_set("gl") {
     "gl_version_info.h",
     "gpu_timing.cc",
     "gpu_timing.h",
+    "scoped_binders.cc",
+    "scoped_binders.h",
   ]
 
   public_deps = [
@@ -70,8 +72,6 @@ source_set("gl") {
       "gl_state_restorer.h",
       "gl_surface_osmesa.cc",
       "gl_surface_osmesa.h",
-      "scoped_binders.cc",
-      "scoped_binders.h",
       "scoped_make_current.cc",
       "scoped_make_current.h",
       "sync_control_vsync_provider.cc",
