@@ -11,6 +11,7 @@
 
 namespace vfx {
 
+// A point in three dimensions.
 class Point {
  public:
   Point() { memset(data_, 0, sizeof(data_)); }

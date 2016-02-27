@@ -11,6 +11,7 @@
 
 namespace vfx {
 
+// A 4x4 projective matrix.
 class Matrix {
  public:
   Matrix() { SetIdentity(); }

@@ -19,4 +19,10 @@ void Offset::Normalize() {
   data_[2] /= norm;
 }
 
+Offset Offset::Cross(const Offset& v) {
+  return Offset(dy() * v.dz() - dz() * v.dy(),
+                dz() * v.dx() - dx() * v.dz(),
+                dx() * v.dy() - dy() * v.dx());
+}
+
 }  // namespace vfx

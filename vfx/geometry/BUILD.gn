@@ -11,9 +11,14 @@ source_set("geometry") {
     "matrix.h",
     "offset.cc",
     "offset.h",
+    "plane.cc",
+    "plane.h",
     "point.cc",
     "point.h",
     "quad.cc",
     "quad.h",
+    "triangle.cc",
+    "triangle.h",
+    "wedge.h",
   ]
 }

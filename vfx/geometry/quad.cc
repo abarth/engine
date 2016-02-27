@@ -40,4 +40,8 @@ Quad Quad::ProjectDistanceFromSource(const Point& source,
               source + ray[3]);
 }
 
+Plane Quad::GetPlane() const {
+  return Plane(p1(), p2(), p3());
+}
+
 }  // namespace vfx

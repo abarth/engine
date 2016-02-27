@@ -9,6 +9,7 @@
 
 namespace vfx {
 
+// A vector in three dimensions.
 class Offset {
  public:
   Offset() { memset(data_, 0, sizeof(data_)); }
@@ -37,6 +38,7 @@ class Offset {
 
   float NormSquared() const;
   void Normalize();
+  Offset Cross(const Offset& v);
 
  private:
   float data_[3];

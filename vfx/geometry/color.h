@@ -11,6 +11,7 @@
 
 namespace vfx {
 
+// An RGBA color.
 class Color {
  public:
   Color() { memset(data_, 0, sizeof(data_)); }

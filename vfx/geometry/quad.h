@@ -8,10 +8,12 @@
 #include <memory>
 
 #include "vfx/geometry/point.h"
+#include "vfx/geometry/plane.h"
 
 namespace vfx {
 class Offset;
 
+// A region bounded by four lines in a plane.
 class Quad {
  public:
   Quad() { memset(data_, 0, sizeof(data_)); }
@@ -38,6 +40,13 @@ class Quad {
 
   void Move(const Offset& offset);
   Quad ProjectDistanceFromSource(const Point& source, double distance) const;
+
+  // Returns the plane that contains this quad.
+  //
+  // Because quads use floating point, it's unlikely that a quad actually lies
+  // in a mathematical plane. This function actually returns the plane that
+  // contains p1, p2, and p3.
+  Plane GetPlane() const;
 
  private:
   Point data_[4];

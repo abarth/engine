@@ -8,24 +8,24 @@
 #include <vector>
 
 #include "vfx/geometry/point.h"
-#include "vfx/geometry/quad.h"
+#include "vfx/geometry/trangle.h"
 
 namespace vfx {
 
-// A solid bounded on six sides by quads.
-class Cuboid {
+// A solid bounded on two sides by triangles and three sides by quads.
+class Wedge {
  public:
-  Cuboid() { }
-  Cuboid(const Quad& a, const Quad& b) {
+  Wedge() { }
+  Wedge(const Triangle& a, const Triangle& b) {
     a_ = a;
     b_ = b;
   }
 
-  const Quad& a() const { return a_; }
-  const Quad& b() const { return b_; }
+  const Triangle& a() const { return a_; }
+  const Triangle& b() const { return b_; }
 
-  void set_a(const Quad& a) { a_ = a; }
-  void set_b(const Quad& b) { b_ = b; }
+  void set_a(const Triangle& a) { a_ = a; }
+  void set_b(const Triangle& b) { b_ = b; }
 
   template<typename Vertex>
   std::vector<Vertex> Tessellate(Vertex make_vertex(const Point& point)) {
@@ -33,24 +33,20 @@ class Cuboid {
     vertices.reserve(14);
     vertices.push_back(make_vertex(a_[0]));
     vertices.push_back(make_vertex(a_[1]));
-    vertices.push_back(make_vertex(a_[3]));
     vertices.push_back(make_vertex(a_[2]));
     vertices.push_back(make_vertex(b_[2]));
-    vertices.push_back(make_vertex(a_[1]));
-    vertices.push_back(make_vertex(b_[1]));
     vertices.push_back(make_vertex(a_[0]));
     vertices.push_back(make_vertex(b_[0]));
-    vertices.push_back(make_vertex(a_[3]));
-    vertices.push_back(make_vertex(b_[3]));
+    vertices.push_back(make_vertex(a_[1]));
+    vertices.push_back(make_vertex(b_[1]));
     vertices.push_back(make_vertex(b_[2]));
     vertices.push_back(make_vertex(b_[0]));
-    vertices.push_back(make_vertex(b_[1]));
     return vertices;
   }
 
  private:
-  Quad a_;
-  Quad b_;
+  Triangle a_;
+  Triangle b_;
 };
 
 }  // namespace vfx
