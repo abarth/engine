@@ -14,6 +14,7 @@
 #include "vfx/gl/frame_buffer.h"
 #include "vfx/gl/texture_program.h"
 #include "vfx/shadows/shadow_scene.h"
+#include "vfx/shadows/penumbra_program.h"
 
 namespace vfx {
 
@@ -30,6 +31,7 @@ class ShadowRenderer {
 
   std::unique_ptr<ColorProgram> color_program_;
   std::unique_ptr<TextureProgram> texture_program_;
+  std::unique_ptr<PenumbraProgram> penumbra_program_;
 
   ElementArrayBuffer<ColorProgram::Vertex> geometry_;
   ArrayBuffer<ColorProgram::Vertex> shadow_;

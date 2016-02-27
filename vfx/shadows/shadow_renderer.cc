@@ -21,6 +21,7 @@ ShadowRenderer::~ShadowRenderer() {
 void ShadowRenderer::PrepareToDraw() {
   color_program_.reset(new ColorProgram());
   texture_program_.reset(new TextureProgram());
+  penumbra_program_.reset(new PenumbraProgram());
 
   geometry_ = scene_.BuildGeometry();
   geometry_.BufferData(GL_STATIC_DRAW);

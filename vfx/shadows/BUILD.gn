@@ -4,6 +4,8 @@
 
 source_set("shadows") {
   sources = [
+    "penumbra_program.cc",
+    "penumbra_program.h",
     "shadow_renderer.cc",
     "shadow_renderer.h",
     "shadow_scene.cc",
