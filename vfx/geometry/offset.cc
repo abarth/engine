@@ -12,11 +12,12 @@ float Offset::NormSquared() const {
   return data_[0] * data_[0] + data_[1] * data_[1] + data_[2] * data_[2];
 }
 
-void Offset::Normalize() {
+Offset& Offset::Normalize() {
   float norm = sqrt(NormSquared());
   data_[0] /= norm;
   data_[1] /= norm;
   data_[2] /= norm;
+  return *this;
 }
 
 Offset Offset::Cross(const Offset& v) {

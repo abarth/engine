@@ -10,6 +10,8 @@ source_set("shadows") {
     "shadow_renderer.h",
     "shadow_scene.cc",
     "shadow_scene.h",
+    "shadow_volume.cc",
+    "shadow_volume.h",
   ]
 
   deps = [

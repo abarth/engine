@@ -4,7 +4,6 @@
 
 source_set("geometry") {
   sources = [
-    "color.cc",
     "color.h",
     "cuboid.h",
     "matrix.cc",
@@ -17,8 +16,10 @@ source_set("geometry") {
     "point.h",
     "quad.cc",
     "quad.h",
+    "sphere.h",
     "triangle.cc",
     "triangle.h",
+    "wedge.cc",
     "wedge.h",
   ]
 }

@@ -42,6 +42,12 @@ inline Offset operator-(const Point& a, const Point& b) {
   return Offset(a.x() - b.x(), a.y() - b.y(), a.z() - b.z());
 }
 
+inline Point operator-(const Point& base, const Offset& offset) {
+  return Point(base.x() - offset.dx(),
+               base.y() - offset.dy(),
+               base.z() - offset.dz());
+}
+
 inline Point operator+(const Point& base, const Offset& offset) {
   return Point(base.x() + offset.dx(),
                base.y() + offset.dy(),

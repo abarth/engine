@@ -2,17 +2,18 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef VFX_GEOMETRY_CUBOID_H_
-#define VFX_GEOMETRY_CUBOID_H_
+#ifndef VFX_GEOMETRY_WEDGE_H_
+#define VFX_GEOMETRY_WEDGE_H_
 
 #include <vector>
 
+#include "vfx/geometry/plane.h"
 #include "vfx/geometry/point.h"
-#include "vfx/geometry/trangle.h"
+#include "vfx/geometry/triangle.h"
 
 namespace vfx {
 
-// A solid bounded on two sides by triangles and three sides by quads.
+// A solid bounded by five planes.
 class Wedge {
  public:
   Wedge() { }
@@ -28,7 +29,7 @@ class Wedge {
   void set_b(const Triangle& b) { b_ = b; }
 
   template<typename Vertex>
-  std::vector<Vertex> Tessellate(Vertex make_vertex(const Point& point)) {
+  std::vector<Vertex> Tessellate(Vertex make_vertex(const Point& point)) const {
     std::vector<Vertex> vertices;
     vertices.reserve(14);
     vertices.push_back(make_vertex(a_[0]));
@@ -44,6 +45,8 @@ class Wedge {
     return vertices;
   }
 
+  Plane GetPlane(size_t index) const;
+
  private:
   Triangle a_;
   Triangle b_;
@@ -51,4 +54,4 @@ class Wedge {
 
 }  // namespace vfx
 
-#endif  // VFX_GEOMETRY_CUBOID_H_
+#endif  // VFX_GEOMETRY_WEDGE_H_

@@ -10,6 +10,7 @@
 #include "base/macros.h"
 #include "vfx/geometry/color.h"
 #include "vfx/geometry/quad.h"
+#include "vfx/geometry/sphere.h"
 #include "vfx/gl/array_buffer.h"
 #include "vfx/gl/color_program.h"
 #include "vfx/gl/element_array_buffer.h"
@@ -29,13 +30,13 @@ class ShadowScene {
   ShadowScene(ShadowScene&& other);
   ShadowScene& operator=(ShadowScene&& other);
 
-  void set_light(Point light) { light_ = light; }
+  void set_light(Sphere light) { light_ = light; }
 
   ElementArrayBuffer<ColorProgram::Vertex> BuildGeometry();
   ArrayBuffer<ColorProgram::Vertex> BuildShadowVolume();
 
  private:
-  Point light_;
+  Sphere light_;
   std::vector<Object> objects_;
 
   DISALLOW_COPY_AND_ASSIGN(ShadowScene);

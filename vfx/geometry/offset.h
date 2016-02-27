@@ -30,19 +30,33 @@ class Offset {
   void set_dy(float dy) { data_[1] = dy; }
   void set_dz(float dz) { data_[2] = dz; }
 
-  void Scale(float factor) {
+  Offset& Scale(float factor) {
     data_[0] *= factor;
     data_[1] *= factor;
     data_[2] *= factor;
+    return *this;
   }
 
+  Offset& Normalize();
+
   float NormSquared() const;
-  void Normalize();
   Offset Cross(const Offset& v);
 
  private:
   float data_[3];
 };
+
+inline Offset operator*(double a, const Offset& v) {
+  return Offset(a * v.dx(), a * v.dy(), a * v.dz());
+}
+
+inline Offset operator*(const Offset& v, double a) {
+  return a * v;
+}
+
+inline Offset operator+(const Offset& v, const Offset& w) {
+  return Offset(v.dx() + w.dx(), v.dy() + w.dy(), v.dz() + w.dz());
+}
 
 }  // namespace vfx
 

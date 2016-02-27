@@ -7,6 +7,7 @@
 #include <memory>
 
 #include "vfx/geometry/cuboid.h"
+#include "vfx/shadows/shadow_volume.h"
 
 namespace vfx {
 namespace {
@@ -56,9 +57,15 @@ ArrayBuffer<ColorProgram::Vertex> ShadowScene::BuildShadowVolume() {
   if (objects_.empty())
     return ArrayBuffer<ColorProgram::Vertex>();
   const Quad& front = objects_[0].quad;
-  Quad back = front.ProjectDistanceFromSource(light_, kFar);
+  ShadowVolume shadow;
+  shadow.Init(front, light_, kFar);
   return ArrayBuffer<ColorProgram::Vertex>(
-      GL_TRIANGLE_STRIP, Cuboid(front, back).Tessellate(CreateShadowVertex));
+      GL_TRIANGLE_STRIP, shadow.umbra().Tessellate(CreateShadowVertex));
+
+  // Quad back = front.ProjectDistanceFromSource(light_.center(), kFar);
+  // return ArrayBuffer<ColorProgram::Vertex>(
+  //     GL_TRIANGLE_STRIP, Cuboid(front, back).Tessellate(CreateShadowVertex));
+
 }
 
 }  // namespace vfx

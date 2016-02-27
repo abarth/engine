@@ -40,6 +40,18 @@ Quad Quad::ProjectDistanceFromSource(const Point& source,
               source + ray[3]);
 }
 
+Offset Quad::GetNormal() const {
+  Offset v = p2() - p1();
+  Offset w = p3() - p1();
+  return v.Cross(w);
+}
+
+Offset Quad::GetUnitNormal() const {
+  Offset normal = GetNormal();
+  normal.Normalize();
+  return normal;
+}
+
 Plane Quad::GetPlane() const {
   return Plane(p1(), p2(), p3());
 }

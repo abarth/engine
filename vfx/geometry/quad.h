@@ -41,6 +41,9 @@ class Quad {
   void Move(const Offset& offset);
   Quad ProjectDistanceFromSource(const Point& source, double distance) const;
 
+  Offset GetNormal() const;
+  Offset GetUnitNormal() const;
+
   // Returns the plane that contains this quad.
   //
   // Because quads use floating point, it's unlikely that a quad actually lies

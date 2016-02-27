@@ -12,7 +12,7 @@
 
 namespace vfx {
 
-// A solid bounded on six sides by quads.
+// A solid bounded by six planes.
 class Cuboid {
  public:
   Cuboid() { }
@@ -28,7 +28,7 @@ class Cuboid {
   void set_b(const Quad& b) { b_ = b; }
 
   template<typename Vertex>
-  std::vector<Vertex> Tessellate(Vertex make_vertex(const Point& point)) {
+  std::vector<Vertex> Tessellate(Vertex make_vertex(const Point& point)) const {
     std::vector<Vertex> vertices;
     vertices.reserve(14);
     vertices.push_back(make_vertex(a_[0]));
