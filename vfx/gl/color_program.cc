@@ -6,6 +6,7 @@
 
 #include <memory>
 
+#include "base/logging.h"
 #include "ui/gl/gl_bindings.h"
 
 namespace vfx {
@@ -41,6 +42,8 @@ ColorProgram::ColorProgram()
     transform_(glGetUniformLocation(program_.id(), "u_transform")),
     position_(glGetAttribLocation(program_.id(), "a_position")),
     color_(glGetAttribLocation(program_.id(), "a_color")) {
+  glEnableVertexAttribArray(position_);
+  glEnableVertexAttribArray(color_);
 }
 
 ColorProgram::~ColorProgram() {

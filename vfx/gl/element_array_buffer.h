@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "base/macros.h"
+#include "base/logging.h"
 #include "ui/gl/gl_bindings.h"
 
 namespace vfx {
@@ -108,12 +109,15 @@ class ElementArrayBuffer {
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_size, indices_.data(), usage);
   }
 
-  void Bind() {
+  bool is_buffered() const { return vertex_buffer_ && index_buffer_; }
+
+  void Bind() const {
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer_);
   }
 
-  void Draw() {
+  void Draw() const {
+    DCHECK(is_buffered());
     glDrawElements(GL_TRIANGLES, index_count(), GL_UNSIGNED_BYTE, 0);
   }
 

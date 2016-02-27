@@ -13,6 +13,10 @@ namespace {
 
 const float kFar = 50.0f;
 
+ColorProgram::Vertex CreateShadowVertex(const Point& point) {
+  return ColorProgram::Vertex{ point, Color(0.0f, 0.0f, 0.0f, 1.0f)};
+}
+
 }  // namespace
 
 ShadowScene::ShadowScene(std::vector<Object> objects)
@@ -35,8 +39,8 @@ ShadowScene& ShadowScene::operator=(ShadowScene&& other) {
   return *this;
 }
 
-ElementArrayBuffer<ShadowScene::Vertex> ShadowScene::BuildGeometry() {
-  ElementArrayBuffer<Vertex> array;
+ElementArrayBuffer<ColorProgram::Vertex> ShadowScene::BuildGeometry() {
+  ElementArrayBuffer<ColorProgram::Vertex> array;
 
   for (const Object& object : objects_) {
     array.AddQuad({ object.quad.p1(), object.color },
@@ -48,13 +52,13 @@ ElementArrayBuffer<ShadowScene::Vertex> ShadowScene::BuildGeometry() {
   return array;
 }
 
-ArrayBuffer<Point> ShadowScene::BuildShadowVolume() {
+ArrayBuffer<ColorProgram::Vertex> ShadowScene::BuildShadowVolume() {
   if (objects_.empty())
-    return ArrayBuffer<Point>();
+    return ArrayBuffer<ColorProgram::Vertex>();
   const Quad& front = objects_[0].quad;
   Quad back = front.ProjectDistanceFromSource(light_, kFar);
-  return ArrayBuffer<Point>(GL_TRIANGLE_STRIP,
-                            Cuboid(front, back).Tessellate());
+  return ArrayBuffer<ColorProgram::Vertex>(
+      GL_TRIANGLE_STRIP, Cuboid(front, back).Tessellate(CreateShadowVertex));
 }
 
 }  // namespace vfx

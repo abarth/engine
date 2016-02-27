@@ -26,7 +26,26 @@ class Cuboid {
   void set_top(const Quad& top) { top_ = top; }
   void set_bottom(const Quad& bottom) { bottom_ = bottom; }
 
-  std::vector<Point> Tessellate();
+  template<typename Vertex>
+  std::vector<Vertex> Tessellate(Vertex make_vertex(const Point& point)) {
+    std::vector<Vertex> vertices;
+    vertices.reserve(14);
+    vertices.push_back(make_vertex(top_[0]));
+    vertices.push_back(make_vertex(top_[1]));
+    vertices.push_back(make_vertex(top_[3]));
+    vertices.push_back(make_vertex(top_[2]));
+    vertices.push_back(make_vertex(bottom_[2]));
+    vertices.push_back(make_vertex(top_[1]));
+    vertices.push_back(make_vertex(bottom_[1]));
+    vertices.push_back(make_vertex(top_[0]));
+    vertices.push_back(make_vertex(bottom_[0]));
+    vertices.push_back(make_vertex(top_[3]));
+    vertices.push_back(make_vertex(bottom_[3]));
+    vertices.push_back(make_vertex(bottom_[2]));
+    vertices.push_back(make_vertex(bottom_[0]));
+    vertices.push_back(make_vertex(bottom_[1]));
+    return vertices;
+  }
 
  private:
   Quad top_;

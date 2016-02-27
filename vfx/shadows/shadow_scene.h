@@ -11,6 +11,7 @@
 #include "vfx/geometry/color.h"
 #include "vfx/geometry/quad.h"
 #include "vfx/gl/array_buffer.h"
+#include "vfx/gl/color_program.h"
 #include "vfx/gl/element_array_buffer.h"
 
 namespace vfx {
@@ -22,11 +23,6 @@ class ShadowScene {
     Color color;
   };
 
-  struct Vertex {
-    Point point;
-    Color color;
-  };
-
   explicit ShadowScene(std::vector<Object> objects);
   ~ShadowScene();
 
@@ -35,8 +31,8 @@ class ShadowScene {
 
   void set_light(Point light) { light_ = light; }
 
-  ElementArrayBuffer<Vertex> BuildGeometry();
-  ArrayBuffer<Point> BuildShadowVolume();
+  ElementArrayBuffer<ColorProgram::Vertex> BuildGeometry();
+  ArrayBuffer<ColorProgram::Vertex> BuildShadowVolume();
 
  private:
   Point light_;

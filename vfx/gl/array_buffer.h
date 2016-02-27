@@ -58,11 +58,14 @@ class ArrayBuffer {
     glBufferData(GL_ARRAY_BUFFER, size, vertices_.data(), usage);
   }
 
-  void Bind() {
+  bool is_buffered() const { return vertex_buffer_; }
+
+  void Bind() const {
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_);
   }
 
-  void Draw() {
+  void Draw() const {
+    DCHECK(is_buffered());
     glDrawArrays(mode_, 0, vertices_.size());
   }
 

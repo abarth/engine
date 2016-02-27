@@ -28,9 +28,9 @@ class ShadowRenderer {
   ShadowScene scene_;
 
   std::unique_ptr<ColorProgram> color_program_;
-  ElementArrayBuffer<ShadowScene::Vertex> geometry_;
-  ArrayBuffer<Point> shadow_;
-  ElementArrayBuffer<ShadowScene::Vertex> shadow_mask_;
+  ElementArrayBuffer<ColorProgram::Vertex> geometry_;
+  ArrayBuffer<ColorProgram::Vertex> shadow_;
+  ElementArrayBuffer<ColorProgram::Vertex> shadow_mask_;
 
   FrameBuffer frame_buffer_;
 };

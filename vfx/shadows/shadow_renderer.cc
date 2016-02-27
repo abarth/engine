@@ -49,18 +49,9 @@ void ShadowRenderer::Draw(const gfx::Size size) {
   transform.SetPerspective(60.0f, aspect, 1.0f, 20.0f );
   transform.PreTranslate(Offset(0, 0, -2));
 
-  glUniformMatrix4fv(color_program_->transform(), 1, GL_FALSE, transform.data());
-  glEnableVertexAttribArray(color_program_->position());
-  glEnableVertexAttribArray(color_program_->color());
-  glUseProgram(color_program_->id());
+  // Geometry
 
-  // Quads
-
-  geometry_.Bind();
-  glVertexAttribPointer(color_program_->position(), 3, GL_FLOAT, GL_FALSE, sizeof(ShadowScene::Vertex), 0);
-  glVertexAttribPointer(color_program_->color(), 4, GL_FLOAT, GL_FALSE, sizeof(ShadowScene::Vertex), (GLvoid*) (sizeof(GLfloat) * 3));
-  geometry_.Draw();
-
+  color_program_->Draw(transform, geometry_);
 
   // glBindFramebufferEXT(GL_FRAMEBUFFER, fbo_);
 
@@ -73,46 +64,31 @@ void ShadowRenderer::Draw(const gfx::Size size) {
   glEnable(GL_POLYGON_OFFSET_FILL);
   glPolygonOffset(0.0f, 100.0f);
 
-  glDisableVertexAttribArray(color_program_->color());
-  shadow_.Bind();
-  glVertexAttribPointer(color_program_->position(), 3, GL_FLOAT, GL_FALSE, sizeof(Point), 0);
-
   glCullFace(GL_FRONT);
   glStencilFunc(GL_ALWAYS, 0x0, 0xff);
   glStencilOp(GL_KEEP, GL_INCR, GL_KEEP);
 
-  shadow_.Draw();
+  color_program_->Draw(transform, shadow_);
 
   glCullFace(GL_BACK);
   glStencilFunc(GL_ALWAYS, 0x0, 0xff);
   glStencilOp(GL_KEEP, GL_DECR, GL_KEEP);
 
-  shadow_.Draw();
-
-  // Shadows.
+  color_program_->Draw(transform, shadow_);
 
   glDisable(GL_POLYGON_OFFSET_FILL);
   glDisable(GL_CULL_FACE);
   glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+
+  // Shadows.
+
   glDepthMask(GL_FALSE);
 
   glStencilFunc(GL_NOTEQUAL, 0x0, 0xff);
   glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
 
-  Matrix identity;
-
-  glUniformMatrix4fv(color_program_->transform(), 1, GL_FALSE, identity.data());
   glDisable(GL_DEPTH_TEST);
-
-  shadow_mask_.Bind();
-
-  glEnableVertexAttribArray(color_program_->color());
-
-  glVertexAttribPointer(color_program_->position(), 3, GL_FLOAT, GL_FALSE, sizeof(ShadowScene::Vertex), 0);
-  glVertexAttribPointer(color_program_->color(), 4, GL_FLOAT, GL_FALSE,  sizeof(ShadowScene::Vertex), (GLvoid*) (sizeof(float) * 3));
-
-  shadow_mask_.Draw();
-
+  color_program_->Draw(Matrix(), shadow_mask_);
   glEnable(GL_DEPTH_TEST);
 
   glDisable(GL_STENCIL_TEST);

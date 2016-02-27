@@ -48,6 +48,9 @@ TextureProgram::TextureProgram()
     position_(glGetAttribLocation(program_.id(), "a_position")),
     color_(glGetAttribLocation(program_.id(), "a_color")),
     tex_coord_(glGetAttribLocation(program_.id(), "a_tex_coord")) {
+  glEnableVertexAttribArray(position_);
+  glEnableVertexAttribArray(color_);
+  glEnableVertexAttribArray(tex_coord_);
 }
 
 TextureProgram::~TextureProgram() {
