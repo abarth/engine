@@ -5,6 +5,8 @@
 source_set("gl") {
   sources = [
     "array_buffer.h",
+    "color_program.cc",
+    "color_program.h",
     "element_array_buffer.h",
     "frame_buffer.cc",
     "frame_buffer.h",
@@ -12,6 +14,10 @@ source_set("gl") {
     "program.h",
     "shader.cc",
     "shader.h",
+    "texture.cc",
+    "texture.h",
+    "texture_program.cc",
+    "texture_program.h",
   ]
 
   deps = [
@@ -20,5 +26,6 @@ source_set("gl") {
 
   public_deps = [
     "//ui/gl",
+    "//ui/gfx/geometry",
   ]
 }

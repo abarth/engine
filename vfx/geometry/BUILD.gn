@@ -6,6 +6,7 @@ source_set("geometry") {
   sources = [
     "color.cc",
     "color.h",
+    "coordinate.h",
     "cuboid.cc",
     "cuboid.h",
     "matrix.cc",

@@ -8,6 +8,7 @@
 #include <memory>
 #include <vector>
 
+#include "base/macros.h"
 #include "ui/gl/gl_bindings.h"
 
 namespace vfx {
@@ -18,13 +19,9 @@ class ElementArrayBuffer {
   ElementArrayBuffer() : vertex_buffer_(0), index_buffer_(0) { }
 
   ~ElementArrayBuffer() {
-    if (vertex_buffer_)
-      glDeleteBuffersARB(1, &vertex_buffer_);
-    if (index_buffer_)
-      glDeleteBuffersARB(1, &index_buffer_);
+    DeleteBuffers();
   }
 
-  ElementArrayBuffer(const ElementArrayBuffer& other) = delete;
   ElementArrayBuffer(ElementArrayBuffer&& other)
     : vertices_(std::move(other.vertices_)),
       indices_(std::move(other.indices_)),
@@ -34,12 +31,15 @@ class ElementArrayBuffer {
     other.index_buffer_ = 0;
   }
 
-  ElementArrayBuffer& operator=(const ElementArrayBuffer& other) = delete;
   ElementArrayBuffer& operator=(ElementArrayBuffer&& other) {
+    if (this == &other)
+      return *this;
+    DeleteBuffers();
     vertices_ = std::move(other.vertices_);
     indices_ = std::move(other.indices_);
     vertex_buffer_ = other.vertex_buffer_;
     index_buffer_ = other.index_buffer_;
+
     other.vertex_buffer_ = 0;
     other.index_buffer_ = 0;
     return *this;
@@ -123,6 +123,20 @@ class ElementArrayBuffer {
 
   GLuint vertex_buffer_;
   GLuint index_buffer_;
+
+  void DeleteBuffers() {
+    if (vertex_buffer_) {
+      glDeleteBuffersARB(1, &vertex_buffer_);
+      vertex_buffer_ = 0;
+    }
+
+    if (index_buffer_) {
+      glDeleteBuffersARB(1, &index_buffer_);
+      index_buffer_ = 0;
+    }
+  }
+
+  DISALLOW_COPY_AND_ASSIGN(ElementArrayBuffer);
 };
 
 }  // namespace vfx

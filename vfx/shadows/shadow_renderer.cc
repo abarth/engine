@@ -18,7 +18,7 @@ ShadowRenderer::~ShadowRenderer() {
 }
 
 void ShadowRenderer::PrepareToDraw() {
-  quad_program_.reset(new SolidQuadProgram());
+  color_program_.reset(new ColorProgram());
 
   geometry_ = scene_.BuildGeometry();
   geometry_.BufferData(GL_STATIC_DRAW);
@@ -34,37 +34,35 @@ void ShadowRenderer::PrepareToDraw() {
   shadow_mask_.BufferData(GL_STATIC_DRAW);
 }
 
-void ShadowRenderer::Draw(int width, int height) {
-  // if (!frame_buffer_)
-  //   frame_buffer_.reset(new FrameBuffer(width, height));
+void ShadowRenderer::Draw(const gfx::Size size) {
+  if (frame_buffer_.is_null())
+    frame_buffer_ = FrameBuffer(size);
 
   // frame_buffer_->Bind();
   glClearColor(0.5f, 0.0f, 0.0f, 1.0f);
   glEnable(GL_DEPTH_TEST);
-  glViewport(0, 0, width, height);
+  glViewport(0, 0, size.width(), size.height());
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-  float aspect = static_cast<GLfloat>(width) / static_cast<GLfloat>(height);
-  Matrix mvp;
-  mvp.SetPerspective(60.0f, aspect, 1.0f, 20.0f );
-  mvp.PreTranslate(Offset(0, 0, -2));
+  float aspect = static_cast<GLfloat>(size.width()) / static_cast<GLfloat>(size.height());
+  Matrix transform;
+  transform.SetPerspective(60.0f, aspect, 1.0f, 20.0f );
+  transform.PreTranslate(Offset(0, 0, -2));
 
-  glUniformMatrix4fv(quad_program_->mvp_matrix(), 1, GL_FALSE, mvp.data());
-  glEnableVertexAttribArray(quad_program_->position());
-  glEnableVertexAttribArray(quad_program_->color());
-  glUseProgram(quad_program_->id());
+  glUniformMatrix4fv(color_program_->transform(), 1, GL_FALSE, transform.data());
+  glEnableVertexAttribArray(color_program_->position());
+  glEnableVertexAttribArray(color_program_->color());
+  glUseProgram(color_program_->id());
 
   // Quads
 
   geometry_.Bind();
-  glVertexAttribPointer(quad_program_->position(), 3, GL_FLOAT, GL_FALSE, sizeof(ShadowScene::Vertex), 0);
-  glVertexAttribPointer(quad_program_->color(), 4, GL_FLOAT, GL_FALSE, sizeof(ShadowScene::Vertex), (GLvoid*) (sizeof(GLfloat) * 3));
+  glVertexAttribPointer(color_program_->position(), 3, GL_FLOAT, GL_FALSE, sizeof(ShadowScene::Vertex), 0);
+  glVertexAttribPointer(color_program_->color(), 4, GL_FLOAT, GL_FALSE, sizeof(ShadowScene::Vertex), (GLvoid*) (sizeof(GLfloat) * 3));
   geometry_.Draw();
 
 
   // glBindFramebufferEXT(GL_FRAMEBUFFER, fbo_);
-
-
 
   // Shadows volumes
 
@@ -75,9 +73,9 @@ void ShadowRenderer::Draw(int width, int height) {
   glEnable(GL_POLYGON_OFFSET_FILL);
   glPolygonOffset(0.0f, 100.0f);
 
-  glDisableVertexAttribArray(quad_program_->color());
+  glDisableVertexAttribArray(color_program_->color());
   shadow_.Bind();
-  glVertexAttribPointer(quad_program_->position(), 3, GL_FLOAT, GL_FALSE, sizeof(Point), 0);
+  glVertexAttribPointer(color_program_->position(), 3, GL_FLOAT, GL_FALSE, sizeof(Point), 0);
 
   glCullFace(GL_FRONT);
   glStencilFunc(GL_ALWAYS, 0x0, 0xff);
@@ -103,15 +101,15 @@ void ShadowRenderer::Draw(int width, int height) {
 
   Matrix identity;
 
-  glUniformMatrix4fv(quad_program_->mvp_matrix(), 1, GL_FALSE, identity.data());
+  glUniformMatrix4fv(color_program_->transform(), 1, GL_FALSE, identity.data());
   glDisable(GL_DEPTH_TEST);
 
   shadow_mask_.Bind();
 
-  glEnableVertexAttribArray(quad_program_->color());
+  glEnableVertexAttribArray(color_program_->color());
 
-  glVertexAttribPointer(quad_program_->position(), 3, GL_FLOAT, GL_FALSE, sizeof(ShadowScene::Vertex), 0);
-  glVertexAttribPointer(quad_program_->color(), 4, GL_FLOAT, GL_FALSE,  sizeof(ShadowScene::Vertex), (GLvoid*) (sizeof(float) * 3));
+  glVertexAttribPointer(color_program_->position(), 3, GL_FLOAT, GL_FALSE, sizeof(ShadowScene::Vertex), 0);
+  glVertexAttribPointer(color_program_->color(), 4, GL_FLOAT, GL_FALSE,  sizeof(ShadowScene::Vertex), (GLvoid*) (sizeof(float) * 3));
 
   shadow_mask_.Draw();
 

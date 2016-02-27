@@ -7,6 +7,8 @@
 
 #include <GL/gl.h>
 
+#include "base/macros.h"
+
 namespace vfx {
 class Shader;
 
@@ -19,6 +21,8 @@ class Program {
 
  private:
   GLuint id_;
+
+  DISALLOW_COPY_AND_ASSIGN(Program);
 };
 
 }  // namespace vfx

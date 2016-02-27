@@ -28,6 +28,8 @@ ShadowScene::~ShadowScene() {
 }
 
 ShadowScene& ShadowScene::operator=(ShadowScene&& other) {
+  if (this == &other)
+    return *this;
   light_ = other.light_;
   objects_ = std::move(other.objects_);
   return *this;

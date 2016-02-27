@@ -8,8 +8,6 @@ source_set("shadows") {
     "shadow_renderer.h",
     "shadow_scene.cc",
     "shadow_scene.h",
-    "solid_quad_program.cc",
-    "solid_quad_program.h",
   ]
 
   deps = [

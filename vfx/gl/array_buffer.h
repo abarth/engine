@@ -8,6 +8,7 @@
 #include <memory>
 #include <vector>
 
+#include "base/macros.h"
 #include "ui/gl/gl_bindings.h"
 #include "vfx/geometry/point.h"
 
@@ -29,7 +30,6 @@ class ArrayBuffer {
       vertices_(std::move(data)),
       vertex_buffer_(0) { }
 
-  ArrayBuffer(const ArrayBuffer& other) = delete;
   ArrayBuffer(ArrayBuffer&& other)
     : mode_(other.mode_),
       vertices_(std::move(other.vertices_)),
@@ -37,8 +37,9 @@ class ArrayBuffer {
     other.vertex_buffer_ = 0;
   }
 
-  ArrayBuffer& operator=(const ArrayBuffer& other) = delete;
   ArrayBuffer& operator=(ArrayBuffer&& other) {
+    if (this == &other)
+      return *this;
     mode_ = other.mode_;
     vertices_ = std::move(other.vertices_);
     vertex_buffer_ = other.vertex_buffer_;
@@ -69,6 +70,8 @@ class ArrayBuffer {
   GLenum mode_;
   std::vector<Vertex> vertices_;
   GLuint vertex_buffer_;
+
+  DISALLOW_COPY_AND_ASSIGN(ArrayBuffer);
 };
 
 }  // namespace vfx

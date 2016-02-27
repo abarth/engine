@@ -7,6 +7,7 @@
 
 #include <vector>
 
+#include "base/macros.h"
 #include "vfx/geometry/color.h"
 #include "vfx/geometry/quad.h"
 #include "vfx/gl/array_buffer.h"
@@ -29,10 +30,7 @@ class ShadowScene {
   explicit ShadowScene(std::vector<Object> objects);
   ~ShadowScene();
 
-  ShadowScene(const ShadowScene& other) = delete;
   ShadowScene(ShadowScene&& other);
-
-  ShadowScene& operator=(const ShadowScene& other) = delete;
   ShadowScene& operator=(ShadowScene&& other);
 
   void set_light(Point light) { light_ = light; }
@@ -43,6 +41,8 @@ class ShadowScene {
  private:
   Point light_;
   std::vector<Object> objects_;
+
+  DISALLOW_COPY_AND_ASSIGN(ShadowScene);
 };
 
 }  // namespace vfx

@@ -8,6 +8,8 @@
 #include <GL/gl.h>
 #include <string>
 
+#include "base/macros.h"
+
 namespace vfx {
 
 class Shader {
@@ -21,6 +23,8 @@ class Shader {
  private:
   GLenum type_;
   GLuint id_;
+
+  DISALLOW_COPY_AND_ASSIGN(Shader);
 };
 
 }  // namespace vfx

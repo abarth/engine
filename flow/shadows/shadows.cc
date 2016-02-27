@@ -54,8 +54,7 @@ void DrawShadowTest(int width, int height, unsigned int fbo) {
     renderer->PrepareToDraw();
   }
 
-  renderer->set_target_fbo(fbo);
-  renderer->Draw(width, height);
+  renderer->Draw(gfx::Size(width, height));
 }
 
 }  // namespace flow

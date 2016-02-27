@@ -8,29 +8,18 @@
 
 namespace vfx {
 
-FrameBuffer::FrameBuffer(GLsizei width, GLsizei height)
-  : width_(width), height_(height), frame_buffer_(0), color_buffer_(0),
-    depth_buffer_(0) {
-  glGenTextures(1, &color_buffer_);
-  glBindTexture(GL_TEXTURE_2D, color_buffer_);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width_, height_, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+FrameBuffer::FrameBuffer() : id_(0) {
+}
 
-  glGenTextures(1, &depth_buffer_);
-  glBindTexture(GL_TEXTURE_2D, depth_buffer_);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width_, height_, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
+FrameBuffer::FrameBuffer(gfx::Size size)
+  : id_(0), size_(std::move(size)) {
+  color_ = Texture::CreateRGBA(size_);
+  depth_ = Texture::CreateDepth(size_);
 
-  glGenFramebuffersEXT(1, &frame_buffer_);
-  glBindFramebufferEXT(GL_FRAMEBUFFER, frame_buffer_);
-  glFramebufferTexture2DEXT(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, color_buffer_, 0);
-  glFramebufferTexture2DEXT(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth_buffer_, 0);
+  glGenFramebuffersEXT(1, &id_);
+  glBindFramebufferEXT(GL_FRAMEBUFFER, id_);
+  glFramebufferTexture2DEXT(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, color_.id(), 0);
+  glFramebufferTexture2DEXT(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth_.id(), 0);
 
   GLenum status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER);
   if (status != GL_FRAMEBUFFER_COMPLETE)
@@ -38,16 +27,47 @@ FrameBuffer::FrameBuffer(GLsizei width, GLsizei height)
 }
 
 FrameBuffer::~FrameBuffer() {
-  if (color_buffer_)
-    glDeleteTextures(1, &color_buffer_);
-  if (depth_buffer_)
-    glDeleteTextures(1, &depth_buffer_);
-  if (frame_buffer_)
-    glDeleteFramebuffersEXT(1, &frame_buffer_);
+  DeleteFrameBuffer();
+}
+
+FrameBuffer::FrameBuffer(FrameBuffer&& other)
+  : id_(other.id_),
+    size_(std::move(other.size_)),
+    color_(std::move(other.color_)),
+    depth_(std::move(other.depth_)) {
+  other.id_ = 0;
+}
+
+FrameBuffer& FrameBuffer::operator=(FrameBuffer&& other) {
+  if (this == &other)
+    return *this;
+  DeleteFrameBuffer();
+  id_ = other.id_;
+  size_ = std::move(other.size_);
+  color_ = std::move(other.color_);
+  depth_ = std::move(other.depth_);
+
+  other.id_ = 0;
+  return *this;
 }
 
 void FrameBuffer::Bind() {
-  glBindFramebufferEXT(GL_FRAMEBUFFER, frame_buffer_);
+  glBindFramebufferEXT(GL_FRAMEBUFFER, id_);
+}
+
+Texture FrameBuffer::TakeColor() {
+  return std::move(color_);
+}
+
+Texture FrameBuffer::TakeDepth() {
+  return std::move(depth_);
+}
+
+void FrameBuffer::DeleteFrameBuffer() {
+  if (id_) {
+    glDeleteFramebuffersEXT(1, &id_);
+    id_ = 0;
+  }
 }
 
 }  // namespace vfx

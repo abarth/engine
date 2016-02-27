@@ -7,23 +7,35 @@
 
 #include <GL/gl.h>
 
-#include "base/logging.h"
+#include "base/macros.h"
+#include "ui/gfx/geometry/size.h"
+#include "vfx/gl/texture.h"
 
 namespace vfx {
 
 class FrameBuffer {
  public:
-  FrameBuffer(GLsizei width, GLsizei height);
+  FrameBuffer();
+  explicit FrameBuffer(gfx::Size size);
   ~FrameBuffer();
 
+  FrameBuffer(FrameBuffer&& other);
+  FrameBuffer& operator=(FrameBuffer&& other);
+
   void Bind();
+  Texture TakeColor();
+  Texture TakeDepth();
+
+  bool is_null() const { return id_ == 0; }
+  GLuint id() const { return id_; }
 
  private:
-  GLsizei width_;
-  GLsizei height_;
-  GLuint frame_buffer_;
-  GLuint color_buffer_;
-  GLuint depth_buffer_;
+  GLuint id_;
+  gfx::Size size_;
+  Texture color_;
+  Texture depth_;
+
+  void DeleteFrameBuffer();
 
   DISALLOW_COPY_AND_ASSIGN(FrameBuffer);
 };

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "vfx/shadows/solid_quad_program.h"
+#include "vfx/gl/color_program.h"
 
 #include <memory>
 
@@ -12,13 +12,13 @@ namespace vfx {
 namespace {
 
 const char kVertexShaderSource[] = R"GLSL(
-uniform mat4 u_mvpMatrix;
+uniform mat4 u_transform;
 attribute vec4 a_position;
 attribute vec4 a_color;
 varying vec4 v_color;
 void main()
 {
-  gl_Position = u_mvpMatrix * a_position;
+  gl_Position = u_transform * a_position;
   v_color = a_color;
 }
 )GLSL";
@@ -34,16 +34,16 @@ void main()
 
 }  // namespace
 
-SolidQuadProgram::SolidQuadProgram()
+ColorProgram::ColorProgram()
   : vertex_shader_(GL_VERTEX_SHADER, kVertexShaderSource),
     fragment_shader_(GL_FRAGMENT_SHADER, kFragmentShaderSource),
     program_(&vertex_shader_, &fragment_shader_),
-    mvp_matrix_(glGetUniformLocation(program_.id(), "u_mvpMatrix")),
+    transform_(glGetUniformLocation(program_.id(), "u_transform")),
     position_(glGetAttribLocation(program_.id(), "a_position")),
     color_(glGetAttribLocation(program_.id(), "a_color")) {
 }
 
-SolidQuadProgram::~SolidQuadProgram() {
+ColorProgram::~ColorProgram() {
 }
 
 }  // namespace vfx

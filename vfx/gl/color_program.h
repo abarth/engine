@@ -2,22 +2,23 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef VFX_SHADOWS_SOLID_QUAD_PROGRAM_H_
-#define VFX_SHADOWS_SOLID_QUAD_PROGRAM_H_
+#ifndef VFX_GL_COLOR_PROGRAM_H_
+#define VFX_GL_COLOR_PROGRAM_H_
 
+#include "base/macros.h"
 #include "vfx/gl/program.h"
 #include "vfx/gl/shader.h"
 
 namespace vfx {
 
-class SolidQuadProgram {
+class ColorProgram {
  public:
-  SolidQuadProgram();
-  ~SolidQuadProgram();
+  ColorProgram();
+  ~ColorProgram();
 
   GLuint id() const { return program_.id(); }
 
-  GLint mvp_matrix() const { return mvp_matrix_; }
+  GLint transform() const { return transform_; }
   GLint position() const { return position_; }
   GLint color() const { return color_; }
 
@@ -26,11 +27,13 @@ class SolidQuadProgram {
   Shader fragment_shader_;
   Program program_;
 
-  GLint mvp_matrix_;
+  GLint transform_;
   GLint position_;
   GLint color_;
+
+  DISALLOW_COPY_AND_ASSIGN(ColorProgram);
 };
 
 }  // namespace vfx
 
-#endif  // VFX_SHADOWS_SOLID_QUAD_PROGRAM_H_
+#endif  // VFX_GL_COLOR_PROGRAM_H_
