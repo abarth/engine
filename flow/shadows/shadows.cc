@@ -31,10 +31,10 @@ void DrawShadowTest(int width, int height, unsigned int fbo) {
     });
     objects.push_back({
       vfx::Quad({
-        vfx::Point({  4, -4, -0.5 }),
-        vfx::Point({  4,  4, -0.5 }),
-        vfx::Point({ -4,  4, -0.5 }),
-        vfx::Point({ -4, -4, -0.5 }),
+        vfx::Point({  2, -2, -1 }),
+        vfx::Point({  2,  2, -1 }),
+        vfx::Point({ -2,  2, -1 }),
+        vfx::Point({ -2, -2, -1 }),
       }),
       vfx::Color(0, 1, 1, 1),
     });
@@ -49,7 +49,7 @@ void DrawShadowTest(int width, int height, unsigned int fbo) {
     });
 
     vfx::ShadowScene scene(std::move(objects));
-    scene.set_light(vfx::Sphere(vfx::Point(0.0f, 0.0f, 1.0f), 0.2));
+    scene.set_light(vfx::Sphere(vfx::Point(-2.0f, 4.0f, 5.0f), 0.2));
     renderer = new vfx::ShadowRenderer(std::move(scene));
     renderer->PrepareToDraw();
   }

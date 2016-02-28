@@ -36,6 +36,8 @@ class Plane {
   void set_c(float c) { data_[2] = c; }
   void set_d(float d) { data_[3] = d; }
 
+  Plane& FlipNormal();
+
  private:
   float data_[4];
 };

@@ -20,4 +20,12 @@ Plane::Plane(const Point& p1, const Point& p2, const Point& p3) {
   data_[3] = a() * p1.x() + b() * p1.y() + c() * p1.y();
 }
 
+Plane& Plane::FlipNormal() {
+  data_[0] = -data_[0];
+  data_[1] = -data_[1];
+  data_[2] = -data_[2];
+  data_[3] = -data_[3];
+  return *this;
+}
+
 }  // namespace vfx

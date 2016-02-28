@@ -26,8 +26,11 @@ void ShadowRenderer::PrepareToDraw() {
   geometry_ = scene_.BuildGeometry();
   geometry_.BufferData(GL_STATIC_DRAW);
 
-  shadow_ = scene_.BuildShadowVolume();
-  shadow_.BufferData(GL_STATIC_DRAW);
+  // shadow_ = scene_.BuildShadowVolume();
+  // shadow_.BufferData(GL_STATIC_DRAW);
+
+  penumbra_ = scene_.BuildPenumbra();
+  penumbra_.BufferData(GL_STATIC_DRAW);
 
   Color black(0.0f, 0.0f, 0.0f, 1.0f);
   shadow_mask_.AddQuad({ Point(-1.0f, -1.0f, 0.0f), black},
@@ -48,43 +51,50 @@ void ShadowRenderer::Draw(const gfx::Size size) {
   if (frame_buffer_.is_null())
     frame_buffer_ = FrameBuffer(size);
 
-  // {
-    // gfx::ScopedFrameBufferBinder bind(frame_buffer_.id());
+  float aspect = static_cast<GLfloat>(size.width()) / static_cast<GLfloat>(size.height());
+  Matrix transform;
+  transform.SetPerspective(60.0f, aspect, 1.0f, 20.0f );
+  transform.PreTranslate(Offset(0, 0, -2));
+
+  {
+    gfx::ScopedFrameBufferBinder bind(frame_buffer_.id());
 
     glClearColor(0.5f, 0.0f, 0.0f, 1.0f);
     glEnable(GL_DEPTH_TEST);
     glViewport(0, 0, size.width(), size.height());
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-    float aspect = static_cast<GLfloat>(size.width()) / static_cast<GLfloat>(size.height());
-    Matrix transform;
-    transform.SetPerspective(60.0f, aspect, 1.0f, 20.0f );
-    transform.PreTranslate(Offset(0, 0, -2));
     color_program_->Draw(transform, geometry_);
-  // }
+    glDisable(GL_DEPTH_TEST);
+  }
 
-  // glClearColor(0.0f, 0.0f, 0.5f, 1.0f);
-  // glEnable(GL_DEPTH_TEST);
-  // glViewport(0, 0, size.width(), size.height());
-  // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  // texture_program_->Draw(Matrix(), frame_buffer_.color().id(), screen_);
+  glClearColor(0.0f, 0.0f, 0.5f, 1.0f);
+  glViewport(0, 0, size.width(), size.height());
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+  texture_program_->Draw(Matrix(), frame_buffer_.color().id(), screen_);
+
+  // Penumbra
+
+  glEnable(GL_CULL_FACE);
+  glCullFace(GL_BACK);
+  penumbra_program_->Draw(transform, frame_buffer_.depth().id(), penumbra_);
+  glDisable(GL_CULL_FACE);
 
   // Shadows volumes
 
   // glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-  glDepthMask(GL_FALSE);
+  // glDepthMask(GL_FALSE);
   // glEnable(GL_STENCIL_TEST);
   // glEnable(GL_POLYGON_OFFSET_FILL);
   // glPolygonOffset(0.0f, 100.0f);
 
-  glEnable(GL_CULL_FACE);
-  glCullFace(GL_BACK);
+  // glEnable(GL_CULL_FACE);
+  // glCullFace(GL_BACK);
 
   // glStencilFunc(GL_ALWAYS, 0x0, 0xff);
   // glStencilOpSeparate(GL_BACK, GL_KEEP, GL_INCR_WRAP, GL_KEEP);
   // glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
-  color_program_->Draw(transform, shadow_);
-  glDisable(GL_CULL_FACE);
+  // color_program_->Draw(transform, shadow_);
+  // glDisable(GL_CULL_FACE);
 
   // glDisable(GL_POLYGON_OFFSET_FILL);
   // glDisable(GL_CULL_FACE);
@@ -102,7 +112,7 @@ void ShadowRenderer::Draw(const gfx::Size size) {
   // glEnable(GL_DEPTH_TEST);
 
   // glDisable(GL_STENCIL_TEST);
-  glDepthMask(GL_TRUE);
+  // glDepthMask(GL_TRUE);
 
 }
 

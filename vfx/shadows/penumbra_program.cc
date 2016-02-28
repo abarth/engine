@@ -54,9 +54,9 @@ void main(void) {
                         dot(position, v_boundary1),
                         dot(position, v_boundary2),
                         dot(position, v_boundary3));
-  if (any(lessThan(dots, zero4))) {
-    discard;
-  }
+  // if (any(lessThan(dots, zero4))) {
+  //   discard;
+  // }
   gl_FragColor = vec4(0.5, 0.5, 0.0, 1.0);
 }
 )GLSL";
@@ -69,16 +69,16 @@ PenumbraProgram::PenumbraProgram()
     program_(&vertex_shader_, &fragment_shader_),
     u_transform_(glGetUniformLocation(program_.id(), "u_transform")),
     u_depth_(glGetUniformLocation(program_.id(), "u_depth")),
-    a_position_(glGetAttribLocation(program_.id(), "a_position")),
-    a_boundary0_(glGetAttribLocation(program_.id(), "a_boundary0")),
-    a_boundary1_(glGetAttribLocation(program_.id(), "a_boundary1")),
-    a_boundary2_(glGetAttribLocation(program_.id(), "a_boundary2")),
-    a_boundary3_(glGetAttribLocation(program_.id(), "a_boundary3")) {
+    a_position_(glGetAttribLocation(program_.id(), "a_position")) {
+  a_boundary_[0] = glGetAttribLocation(program_.id(), "a_boundary0");
+  a_boundary_[1] = glGetAttribLocation(program_.id(), "a_boundary1");
+  a_boundary_[2] = glGetAttribLocation(program_.id(), "a_boundary2");
+  a_boundary_[3] = glGetAttribLocation(program_.id(), "a_boundary3");
   glEnableVertexAttribArray(a_position_);
-  glEnableVertexAttribArray(a_boundary0_);
-  glEnableVertexAttribArray(a_boundary1_);
-  glEnableVertexAttribArray(a_boundary2_);
-  glEnableVertexAttribArray(a_boundary3_);
+  glEnableVertexAttribArray(a_boundary_[0]);
+  glEnableVertexAttribArray(a_boundary_[1]);
+  glEnableVertexAttribArray(a_boundary_[2]);
+  glEnableVertexAttribArray(a_boundary_[3]);
 }
 
 PenumbraProgram::~PenumbraProgram() {

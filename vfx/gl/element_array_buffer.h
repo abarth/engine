@@ -52,13 +52,23 @@ class ElementArrayBuffer {
     vertices_.push_back(std::move(vertex));
   }
 
-  void AddIndices(Index a, Index b, Index c) {
+  void AddTriangleIndices(Index a, Index b, Index c) {
     indices_.push_back(a);
     indices_.push_back(b);
     indices_.push_back(c);
   }
 
-  void AddTriange(Vertex p1, Vertex p2, Vertex p3) {
+  void AddQuadIndices(Index a, Index b, Index c, Index d) {
+    indices_.push_back(a);
+    indices_.push_back(b);
+    indices_.push_back(c);
+
+    indices_.push_back(c);
+    indices_.push_back(d);
+    indices_.push_back(a);
+  }
+
+  void AddTriangle(Vertex p1, Vertex p2, Vertex p3) {
     uint16_t base = vertices_.size();
 
     vertices_.push_back(std::move(p1));

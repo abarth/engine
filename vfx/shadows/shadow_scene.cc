@@ -14,9 +14,9 @@ namespace {
 
 const float kFar = 50.0f;
 
-ColorProgram::Vertex CreateShadowVertex(const Point& point) {
-  return ColorProgram::Vertex{ point, Color(0.0f, 0.0f, 0.0f, 1.0f)};
-}
+// ColorProgram::Vertex CreateShadowVertex(const Point& point) {
+//   return ColorProgram::Vertex{ point, Color(0.0f, 0.0f, 0.0f, 1.0f)};
+// }
 
 }  // namespace
 
@@ -41,31 +41,87 @@ ShadowScene& ShadowScene::operator=(ShadowScene&& other) {
 }
 
 ElementArrayBuffer<ColorProgram::Vertex> ShadowScene::BuildGeometry() {
-  ElementArrayBuffer<ColorProgram::Vertex> array;
+  ElementArrayBuffer<ColorProgram::Vertex> buffer;
 
   for (const Object& object : objects_) {
-    array.AddQuad({ object.quad.p1(), object.color },
-                  { object.quad.p2(), object.color },
-                  { object.quad.p3(), object.color },
-                  { object.quad.p4(), object.color });
+    buffer.AddQuad({ object.quad.p1(), object.color },
+                   { object.quad.p2(), object.color },
+                   { object.quad.p3(), object.color },
+                   { object.quad.p4(), object.color });
   }
 
-  return array;
+  return buffer;
 }
 
-ArrayBuffer<ColorProgram::Vertex> ShadowScene::BuildShadowVolume() {
+// ArrayBuffer<ColorProgram::Vertex> ShadowScene::BuildShadowVolume() {
+//   if (objects_.empty())
+//     return ArrayBuffer<ColorProgram::Vertex>();
+//   const Quad& front = objects_[0].quad;
+//   ShadowVolume shadow;
+//   shadow.Init(front, light_, kFar);
+//   return ArrayBuffer<ColorProgram::Vertex>(
+//       GL_TRIANGLE_STRIP, shadow.umbra().Tessellate(CreateShadowVertex));
+
+//   // Quad back = front.ProjectDistanceFromSource(light_.center(), kFar);
+//   // return ArrayBuffer<ColorProgram::Vertex>(
+//   //     GL_TRIANGLE_STRIP, Cuboid(front, back).Tessellate(CreateShadowVertex));
+
+// }
+
+ElementArrayBuffer<PenumbraProgram::Vertex> ShadowScene::BuildPenumbra() {
   if (objects_.empty())
-    return ArrayBuffer<ColorProgram::Vertex>();
+    return ElementArrayBuffer<PenumbraProgram::Vertex>();
   const Quad& front = objects_[0].quad;
+
+  ElementArrayBuffer<PenumbraProgram::Vertex> buffer;
   ShadowVolume shadow;
   shadow.Init(front, light_, kFar);
-  return ArrayBuffer<ColorProgram::Vertex>(
-      GL_TRIANGLE_STRIP, shadow.umbra().Tessellate(CreateShadowVertex));
 
-  // Quad back = front.ProjectDistanceFromSource(light_.center(), kFar);
-  // return ArrayBuffer<ColorProgram::Vertex>(
-  //     GL_TRIANGLE_STRIP, Cuboid(front, back).Tessellate(CreateShadowVertex));
+  const Triangle* penumbra = shadow.penumbra();
 
+  Plane sides[4] = {
+    penumbra[0].GetPlane(),
+    penumbra[1].GetPlane(),
+    penumbra[2].GetPlane(),
+    penumbra[3].GetPlane(),
+  };
+
+  Plane backs[4] = {
+    Plane(penumbra[0].p1(), penumbra[1].p1(), penumbra[1].p2()),
+    Plane(penumbra[1].p1(), penumbra[2].p1(), penumbra[2].p2()),
+    Plane(penumbra[2].p1(), penumbra[3].p1(), penumbra[3].p2()),
+    Plane(penumbra[3].p1(), penumbra[0].p1(), penumbra[0].p2()),
+  };
+
+  Plane fronts[4] = {
+    Plane(penumbra[0].p1(), penumbra[1].p1(), penumbra[1].p3()),
+    Plane(penumbra[1].p1(), penumbra[2].p1(), penumbra[2].p3()),
+    Plane(penumbra[2].p1(), penumbra[3].p1(), penumbra[3].p3()),
+    Plane(penumbra[3].p1(), penumbra[0].p1(), penumbra[0].p3()),
+  };
+
+  for (int i = 3; i < 4; ++i) {
+    int j = (i + 1) % 4;
+    size_t base = buffer.vertex_count();
+
+    buffer.AddTriangle(
+        { penumbra[i].p1(), { sides[i], backs[i], fronts[i], sides[j] } },
+        { penumbra[i].p2(), { sides[i], backs[i], fronts[i], sides[j] } },
+        { penumbra[i].p3(), { sides[i], backs[i], fronts[i], sides[j] } });
+
+    buffer.AddTriangle(
+        { penumbra[j].p1(), { sides[i], backs[i], fronts[i], sides[j] } },
+        { penumbra[j].p3(), { sides[i], backs[i], fronts[i], sides[j] } },
+        { penumbra[j].p2(), { sides[i], backs[i], fronts[i], sides[j] } });
+
+    // Front
+    buffer.AddQuadIndices(base + 0, base + 2, base + 4, base + 3);
+
+    // Back
+    buffer.AddQuadIndices(base + 0, base + 3, base + 5, base + 1);
+  }
+
+  return buffer;
 }
 
 }  // namespace vfx

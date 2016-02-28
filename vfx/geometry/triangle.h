@@ -34,6 +34,8 @@ class Triangle {
   void set_p2(const Point& p2) { data_[1] = p2; }
   void set_p3(const Point& p3) { data_[2] = p3; }
 
+  Triangle& FlipNormal();
+
   // Returns the plane that contains this triangle.
   Plane GetPlane() const;
 

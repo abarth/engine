@@ -21,12 +21,10 @@ class ShadowVolume {
 
   void Init(const Quad& occluder, const Sphere& light, double far);
 
-  const Cuboid& umbra() const { return umbra_; }
-  const Cuboid& penumbra() const { return penumbra_; }
+  const Triangle* penumbra() const { return penumbra_; }
 
  private:
-  Cuboid umbra_;
-  Cuboid penumbra_;
+  Triangle penumbra_[4];
 };
 
 }  // namespace vfx
