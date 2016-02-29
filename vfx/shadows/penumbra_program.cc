@@ -14,60 +14,85 @@ namespace {
 const char kVertexShaderSource[] = R"GLSL(
 uniform mat4 u_transform;
 
-attribute vec3 a_position;
-attribute vec4 a_boundary0;
-attribute vec4 a_boundary1;
-attribute vec4 a_boundary2;
-attribute vec4 a_boundary3;
+attribute vec4 a_position;
+attribute vec4 a_edge0;
+attribute vec4 a_edge1;
+attribute vec4 a_front0;
+attribute vec4 a_front1;
+attribute vec4 a_back0;
+attribute vec4 a_back1;
 
 varying vec4 v_boundary0;
 varying vec4 v_boundary1;
 varying vec4 v_boundary2;
 varying vec4 v_boundary3;
 
-void main()
-{
-  gl_Position = u_transform * vec4(a_position, 1);
-  v_boundary0 = a_boundary0;
-  v_boundary1 = a_boundary1;
-  v_boundary2 = a_boundary2;
-  v_boundary3 = a_boundary3;
+vec4 getPlane(vec3 a, vec3 b, vec3 c) {
+  vec3 v = b - a;
+  vec3 w = c - a;
+  vec3 normal = cross(v, w);
+  return vec4(normal, -dot(normal, a));
+}
+
+void main() {
+  gl_Position = u_transform * a_position;
+
+  vec4 h_edge0  = u_transform * a_edge0;
+  vec4 h_edge1  = u_transform * a_edge1;
+  vec4 h_front0 = u_transform * a_front0;
+  vec4 h_front1 = u_transform * a_front1;
+  vec4 h_back0  = u_transform * a_back0;
+  vec4 h_back1  = u_transform * a_back1;
+
+  vec3 edge0  = (h_edge0).xyz  / h_edge0.w;
+  vec3 edge1  = (h_edge1).xyz  / h_edge1.w;
+  vec3 front0 = (h_front0).xyz / h_front0.w;
+  vec3 front1 = (h_front1).xyz / h_front1.w;
+  vec3 back0  = (h_back0).xyz  / h_back0.w;
+  vec3 back1  = (h_back1).xyz  / h_back1.w;
+
+  v_boundary0 = getPlane(edge0, front0, back0);
+  v_boundary1 = getPlane(edge1, back1, front1);
+  v_boundary2 = getPlane(edge0, edge1, front1);
+  v_boundary3 = getPlane(edge1, edge0, back0);
 }
 )GLSL";
 
-
 const char kFragmentShaderSource[] = R"GLSL(
 #extension GL_EXT_shader_framebuffer_fetch : require
-precision lowp float;
+precision highp float;
 
-varying lowp vec4 v_boundary0;
-varying lowp vec4 v_boundary1;
-varying lowp vec4 v_boundary2;
-varying lowp vec4 v_boundary3;
+varying highp vec4 v_boundary0;
+varying highp vec4 v_boundary1;
+varying highp vec4 v_boundary2;
+varying highp vec4 v_boundary3;
 uniform highp sampler2D u_depth;
 uniform vec2 u_inverse_size;
 
-const lowp vec4 zero4 = vec4(0.0, 0.0, 0.0, 0.0);
+const highp vec4 zero4 = vec4(0.0, 0.0, 0.0, 0.0);
 
 void main(void) {
-  vec2 depth_coord = gl_FragCoord.xy * u_inverse_size;
+  // Convert gl_FragCoord from window coordiates to [0:1]^2 for texture lookup.
+  highp vec2 depth_coord = gl_FragCoord.xy * u_inverse_size;
+
+  // Depth is in the range [0:1].
   highp float depth = texture2D(u_depth, depth_coord).r;
-  // lowp float depth = gl_LastFragData[0].r;
-  if (gl_FragCoord.z >= depth)
+
+  // Convert from [0:1]^3 to [-1:1]^3 (i.e., normalized device coordinates).
+  highp vec4 position = vec4(depth_coord, depth, 1.0) * 2.0 - 1.0;
+
+  highp vec4 dots = vec4(dot(position, v_boundary0),
+                         dot(position, v_boundary1),
+                         dot(position, v_boundary2),
+                         dot(position, v_boundary3));
+
+  if (any(greaterThan(dots, zero4)))
     discard;
-  // lowp vec4 position = vec4(gl_FragCoord.xy, depth, 1.0);
-  // if (dot(position, v_boundary2) <= 0.0)
-  //   discard;
-  // lowp vec4 dots = vec4(dot(position, v_boundary0),
-  //                       dot(position, v_boundary1),
-  //                       dot(position, v_boundary2),
-  //                       dot(position, v_boundary3));
-  // if (any(lessThan(dots, zero4))) {
-  //   discard;
-  // }
-  gl_FragColor = vec4(0.5, 0.5, 0.0, 1.0);
-  // gl_FragColor = vec4(depth, 0.0, 0.0, 1.0);
-  // gl_FragColor = texture2D(u_depth, depth_coord);
+
+  highp float d = dots.z + dots.w;
+  lowp float a = dots.w / d;
+
+  gl_FragColor = gl_LastFragData[0] * a;
 }
 )GLSL";
 
@@ -80,16 +105,20 @@ PenumbraProgram::PenumbraProgram()
     u_transform_(glGetUniformLocation(program_.id(), "u_transform")),
     u_depth_(glGetUniformLocation(program_.id(), "u_depth")),
     u_inverse_size_(glGetUniformLocation(program_.id(), "u_inverse_size")),
-    a_position_(glGetAttribLocation(program_.id(), "a_position")) {
-  a_boundary_[0] = glGetAttribLocation(program_.id(), "a_boundary0");
-  a_boundary_[1] = glGetAttribLocation(program_.id(), "a_boundary1");
-  a_boundary_[2] = glGetAttribLocation(program_.id(), "a_boundary2");
-  a_boundary_[3] = glGetAttribLocation(program_.id(), "a_boundary3");
+    a_position_(glGetAttribLocation(program_.id(), "a_position")),
+    a_edge0_(glGetAttribLocation(program_.id(), "a_edge0")),
+    a_back0_(glGetAttribLocation(program_.id(), "a_back0")),
+    a_front0_(glGetAttribLocation(program_.id(), "a_front0")),
+    a_edge1_(glGetAttribLocation(program_.id(), "a_edge1")),
+    a_back1_(glGetAttribLocation(program_.id(), "a_back1")),
+    a_front1_(glGetAttribLocation(program_.id(), "a_front1")) {
   glEnableVertexAttribArray(a_position_);
-  glEnableVertexAttribArray(a_boundary_[0]);
-  glEnableVertexAttribArray(a_boundary_[1]);
-  glEnableVertexAttribArray(a_boundary_[2]);
-  glEnableVertexAttribArray(a_boundary_[3]);
+  glEnableVertexAttribArray(a_edge0_);
+  glEnableVertexAttribArray(a_edge1_);
+  glEnableVertexAttribArray(a_front0_);
+  glEnableVertexAttribArray(a_front1_);
+  glEnableVertexAttribArray(a_back0_);
+  glEnableVertexAttribArray(a_back1_);
 }
 
 PenumbraProgram::~PenumbraProgram() {

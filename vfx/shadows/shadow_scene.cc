@@ -7,16 +7,15 @@
 #include <memory>
 
 #include "vfx/geometry/cuboid.h"
-#include "vfx/shadows/shadow_volume.h"
 
 namespace vfx {
 namespace {
 
 const float kFar = 50.0f;
 
-// ColorProgram::Vertex CreateShadowVertex(const Point& point) {
-//   return ColorProgram::Vertex{ point, Color(0.0f, 0.0f, 0.0f, 1.0f)};
-// }
+ColorProgram::Vertex CreateUmbraVertex(const Point& point) {
+  return ColorProgram::Vertex{ point, Color(0.0f, 0.0f, 0.0f, 1.0f)};
+}
 
 }  // namespace
 
@@ -40,6 +39,10 @@ ShadowScene& ShadowScene::operator=(ShadowScene&& other) {
   return *this;
 }
 
+void ShadowScene::ComputeShadow() {
+  shadow_.Init(objects_[0].quad, light_, kFar);
+}
+
 ElementArrayBuffer<ColorProgram::Vertex> ShadowScene::BuildGeometry() {
   ElementArrayBuffer<ColorProgram::Vertex> buffer;
 
@@ -53,66 +56,38 @@ ElementArrayBuffer<ColorProgram::Vertex> ShadowScene::BuildGeometry() {
   return buffer;
 }
 
-// ArrayBuffer<ColorProgram::Vertex> ShadowScene::BuildShadowVolume() {
-//   if (objects_.empty())
-//     return ArrayBuffer<ColorProgram::Vertex>();
-//   const Quad& front = objects_[0].quad;
-//   ShadowVolume shadow;
-//   shadow.Init(front, light_, kFar);
-//   return ArrayBuffer<ColorProgram::Vertex>(
-//       GL_TRIANGLE_STRIP, shadow.umbra().Tessellate(CreateShadowVertex));
+ArrayBuffer<ColorProgram::Vertex> ShadowScene::BuildUmbra() {
+  if (objects_.empty())
+    return ArrayBuffer<ColorProgram::Vertex>();
+  const Quad& front = objects_[0].quad;
+  const Triangle* shadow = shadow_.shadow();
+  Cuboid umbra(front, Quad(shadow[0].p2(),
+                           shadow[1].p2(),
+                           shadow[2].p2(),
+                           shadow[3].p2()));
 
-//   // Quad back = front.ProjectDistanceFromSource(light_.center(), kFar);
-//   // return ArrayBuffer<ColorProgram::Vertex>(
-//   //     GL_TRIANGLE_STRIP, Cuboid(front, back).Tessellate(CreateShadowVertex));
 
-// }
+  return ArrayBuffer<ColorProgram::Vertex>(
+      GL_TRIANGLE_STRIP, umbra.Tessellate(CreateUmbraVertex));
+}
 
 ElementArrayBuffer<PenumbraProgram::Vertex> ShadowScene::BuildPenumbra() {
-  if (objects_.empty())
-    return ElementArrayBuffer<PenumbraProgram::Vertex>();
-  const Quad& front = objects_[0].quad;
-
   ElementArrayBuffer<PenumbraProgram::Vertex> buffer;
-  ShadowVolume shadow;
-  shadow.Init(front, light_, kFar);
-
-  const Triangle* penumbra = shadow.penumbra();
-
-  Plane sides[4] = {
-    penumbra[0].GetPlane(),
-    penumbra[1].GetPlane(),
-    penumbra[2].GetPlane(),
-    penumbra[3].GetPlane(),
-  };
-
-  Plane backs[4] = {
-    Plane(penumbra[0].p1(), penumbra[1].p1(), penumbra[1].p2()),
-    Plane(penumbra[1].p1(), penumbra[2].p1(), penumbra[2].p2()),
-    Plane(penumbra[2].p1(), penumbra[3].p1(), penumbra[3].p2()),
-    Plane(penumbra[3].p1(), penumbra[0].p1(), penumbra[0].p2()),
-  };
-
-  Plane fronts[4] = {
-    Plane(penumbra[0].p1(), penumbra[1].p1(), penumbra[1].p3()),
-    Plane(penumbra[1].p1(), penumbra[2].p1(), penumbra[2].p3()),
-    Plane(penumbra[2].p1(), penumbra[3].p1(), penumbra[3].p3()),
-    Plane(penumbra[3].p1(), penumbra[0].p1(), penumbra[0].p3()),
-  };
+  const Triangle* shadow = shadow_.shadow();
 
   for (int i = 0; i < 4; ++i) {
     int j = (i + 1) % 4;
     size_t base = buffer.vertex_count();
+    Wedge penumbra(shadow[i], shadow[j]);
 
-    buffer.AddTriangle(
-        { penumbra[i].p1(), { sides[i], backs[i], fronts[i], sides[j] } },
-        { penumbra[i].p2(), { sides[i], backs[i], fronts[i], sides[j] } },
-        { penumbra[i].p3(), { sides[i], backs[i], fronts[i], sides[j] } });
+    // Sides
+    buffer.AddTriangle({ shadow[i].p1(), penumbra },
+                       { shadow[i].p2(), penumbra },
+                       { shadow[i].p3(), penumbra });
 
-    buffer.AddTriangle(
-        { penumbra[j].p1(), { sides[i], backs[i], fronts[i], sides[j] } },
-        { penumbra[j].p3(), { sides[i], backs[i], fronts[i], sides[j] } },
-        { penumbra[j].p2(), { sides[i], backs[i], fronts[i], sides[j] } });
+    buffer.AddTriangle({ shadow[j].p1(), penumbra },
+                       { shadow[j].p3(), penumbra },
+                       { shadow[j].p2(), penumbra });
 
     // Front
     buffer.AddQuadIndices(base + 0, base + 2, base + 4, base + 3);
@@ -120,11 +95,6 @@ ElementArrayBuffer<PenumbraProgram::Vertex> ShadowScene::BuildPenumbra() {
     // Back
     buffer.AddQuadIndices(base + 0, base + 3, base + 5, base + 1);
   }
-
-  // buffer.AddQuad({ penumbra[0].p1(), { Plane(), Plane(), Plane(), Plane() } },
-  //                { penumbra[1].p1(), { Plane(), Plane(), Plane(), Plane() } },
-  //                { penumbra[2].p1(), { Plane(), Plane(), Plane(), Plane() } },
-  //                { penumbra[3].p1(), { Plane(), Plane(), Plane(), Plane() } });
 
   return buffer;
 }

@@ -15,6 +15,7 @@
 #include "vfx/gl/color_program.h"
 #include "vfx/gl/element_array_buffer.h"
 #include "vfx/shadows/penumbra_program.h"
+#include "vfx/shadows/shadow_volume.h"
 
 namespace vfx {
 
@@ -33,13 +34,16 @@ class ShadowScene {
 
   void set_light(Sphere light) { light_ = light; }
 
+  void ComputeShadow();
+
   ElementArrayBuffer<ColorProgram::Vertex> BuildGeometry();
-  // ArrayBuffer<ColorProgram::Vertex> BuildShadowVolume();
+  ArrayBuffer<ColorProgram::Vertex> BuildUmbra();
   ElementArrayBuffer<PenumbraProgram::Vertex> BuildPenumbra();
 
  private:
   Sphere light_;
   std::vector<Object> objects_;
+  ShadowVolume shadow_;
 
   DISALLOW_COPY_AND_ASSIGN(ShadowScene);
 };

@@ -84,10 +84,10 @@ void ShadowVolume::Init(const Quad& occluder,
     casters[7] + penumbra_rays[7],
   };
 
-  penumbra_[0] = Triangle(occluder.p1(), endpoints[0], endpoints[4]);
-  penumbra_[1] = Triangle(occluder.p2(), endpoints[1], endpoints[5]);
-  penumbra_[2] = Triangle(occluder.p3(), endpoints[2], endpoints[6]);
-  penumbra_[3] = Triangle(occluder.p4(), endpoints[3], endpoints[7]);
+  shadow_[0] = Triangle(occluder.p1(), endpoints[0], endpoints[4]);
+  shadow_[1] = Triangle(occluder.p2(), endpoints[1], endpoints[5]);
+  shadow_[2] = Triangle(occluder.p3(), endpoints[2], endpoints[6]);
+  shadow_[3] = Triangle(occluder.p4(), endpoints[3], endpoints[7]);
 }
 
 }  // namespace vfx

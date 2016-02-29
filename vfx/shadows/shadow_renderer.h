@@ -34,7 +34,7 @@ class ShadowRenderer {
   std::unique_ptr<PenumbraProgram> penumbra_program_;
 
   ElementArrayBuffer<ColorProgram::Vertex> geometry_;
-  // ArrayBuffer<ColorProgram::Vertex> shadow_;
+  ArrayBuffer<ColorProgram::Vertex> umbra_;
   ElementArrayBuffer<PenumbraProgram::Vertex> penumbra_;
   ElementArrayBuffer<ColorProgram::Vertex> shadow_mask_;
   ElementArrayBuffer<TextureProgram::Vertex> screen_;
