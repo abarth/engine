@@ -64,7 +64,9 @@ void ShadowRenderer::Draw(const gfx::Size size) {
     glViewport(0, 0, size.width(), size.height());
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     color_program_->Draw(transform, geometry_);
+
     glDisable(GL_DEPTH_TEST);
+
   }
 
   glClearColor(0.0f, 0.0f, 0.5f, 1.0f);
@@ -73,11 +75,12 @@ void ShadowRenderer::Draw(const gfx::Size size) {
   texture_program_->Draw(Matrix(), frame_buffer_.color().id(), screen_);
 
   // Penumbra
+  // glEnable(GL_CULL_FACE);
+  // glCullFace(GL_BACK);
+  penumbra_program_->Draw(transform, frame_buffer_.depth().id(), size, penumbra_);
+  // glDisable(GL_CULL_FACE);
 
-  glEnable(GL_CULL_FACE);
-  glCullFace(GL_BACK);
-  penumbra_program_->Draw(transform, frame_buffer_.depth().id(), penumbra_);
-  glDisable(GL_CULL_FACE);
+
 
   // Shadows volumes
 

@@ -6,6 +6,7 @@
 #define VFX_SHADOWS_PENUMBRA_PROGRAM_H_
 
 #include "base/macros.h"
+#include "ui/gfx/geometry/size.h"
 #include "ui/gl/gl_bindings.h"
 #include "vfx/geometry/matrix.h"
 #include "vfx/geometry/plane.h"
@@ -30,6 +31,7 @@ class PenumbraProgram {
   template<typename Buffer>
   void Draw(const Matrix& transform,
             GLuint depth_id,
+            const gfx::Size viewport_size,
             const Buffer& geometry) {
     const GLvoid* kPositionOffset = nullptr;
     const GLvoid* kBoundaryOffset[4] = {
@@ -45,6 +47,7 @@ class PenumbraProgram {
     glUseProgram(program_.id());
     glUniformMatrix4fv(u_transform_, 1, GL_FALSE, transform.data());
     glUniform1i(u_depth_, 0);
+    glUniform2f(u_inverse_size_, 1.0 / viewport_size.width(), 1.0 / viewport_size.height());
     geometry.Bind();
     glVertexAttribPointer(a_position_, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), kPositionOffset);
     glVertexAttribPointer(a_boundary_[0], 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), kBoundaryOffset[0]);
@@ -61,6 +64,7 @@ class PenumbraProgram {
 
   GLint u_transform_;
   GLint u_depth_;
+  GLint u_inverse_size_;
   GLint a_position_;
   GLint a_boundary_[4];
 

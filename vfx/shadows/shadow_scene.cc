@@ -100,7 +100,7 @@ ElementArrayBuffer<PenumbraProgram::Vertex> ShadowScene::BuildPenumbra() {
     Plane(penumbra[3].p1(), penumbra[0].p1(), penumbra[0].p3()),
   };
 
-  for (int i = 3; i < 4; ++i) {
+  for (int i = 0; i < 4; ++i) {
     int j = (i + 1) % 4;
     size_t base = buffer.vertex_count();
 
@@ -120,6 +120,11 @@ ElementArrayBuffer<PenumbraProgram::Vertex> ShadowScene::BuildPenumbra() {
     // Back
     buffer.AddQuadIndices(base + 0, base + 3, base + 5, base + 1);
   }
+
+  // buffer.AddQuad({ penumbra[0].p1(), { Plane(), Plane(), Plane(), Plane() } },
+  //                { penumbra[1].p1(), { Plane(), Plane(), Plane(), Plane() } },
+  //                { penumbra[2].p1(), { Plane(), Plane(), Plane(), Plane() } },
+  //                { penumbra[3].p1(), { Plane(), Plane(), Plane(), Plane() } });
 
   return buffer;
 }

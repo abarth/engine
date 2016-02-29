@@ -13,7 +13,7 @@ namespace {
 
 const char kVertexShaderSource[] = R"GLSL(
 uniform mat4 u_transform;
-attribute vec4 a_position;
+attribute vec3 a_position;
 attribute vec4 a_color;
 attribute vec2 a_tex_coord;
 
@@ -21,7 +21,7 @@ varying vec2 v_tex_coord;
 varying vec4 v_color;
 void main()
 {
-  gl_Position = u_transform * a_position;
+  gl_Position = u_transform * vec4(a_position, 1.0);
   v_color = a_color;
   v_tex_coord = a_tex_coord;
 }
