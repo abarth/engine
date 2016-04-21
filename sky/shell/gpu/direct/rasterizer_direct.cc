@@ -93,6 +93,13 @@ void RasterizerDirect::Draw(uint64_t layer_tree_ptr,
   GrRenderTarget* render_target = ganesh_canvas_.GetRenderTarget(
       surface_->GetBackingFrameBufferObject(), layer_tree->frame_size());
 
+  flow::Layer::PrerollContext context = {
+    ganesh_canvas_.gr_context(),
+    nullptr,
+    SkRect::MakeEmpty(),
+  };
+  layer_tree->root_layer()->Preroll(&context, SkMatrix());
+
   flow::QuadCollector collector;
   layer_tree->root_layer()->CollectQuads(collector);
   flow::QuadRasterizer rasterizer(ganesh_canvas_.gr_context(), render_target);

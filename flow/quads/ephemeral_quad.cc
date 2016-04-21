@@ -28,13 +28,17 @@ void EphemeralQuad::ApplyAlpha(int alpha) {
 
 void EphemeralQuad::Rasterize(QuadRasterizer* rasterizer,
                               const SkPoint& offset) const {
+  // LOG(INFO) << "EphemeralQuad::Rasterize rect: ("
+  //           << rect_.x() << ", " << rect_.y()
+  //           << ", " << rect_.width() << ", " << rect_.height() << ") offset: ("
+  //           << offset.x() << ", " << offset.y() << ")";
   GrSurfaceDesc desc;
   desc.fFlags = kRenderTarget_GrSurfaceFlag;
   desc.fWidth = rect_.width();
   desc.fHeight = rect_.height();
   desc.fConfig = kSkia8888_GrPixelConfig;
   skia::RefPtr<GrTexture> texture = skia::AdoptRef(
-      rasterizer->gr_context()->textureProvider()->createTexture(desc, false));
+      rasterizer->gr_context()->textureProvider()->createTexture(desc, SkBudgeted::kNo));
   if (!texture)
     return;
   QuadRasterizer child_rasterizer(rasterizer->gr_context(),
@@ -51,8 +55,8 @@ void EphemeralQuad::Rasterize(QuadRasterizer* rasterizer,
     paint.addColorFragmentProcessor(processor.get());
 
   QuadRasterizer::DrawScope scope = rasterizer->GetDrawScope();
-  scope.context()->drawRect(GrClip::WideOpen(), paint, SkMatrix::I(),
-                            rect_.makeOffset(offset.x(), offset.y()));
+  scope.context()->fillRectToRect(GrClip::WideOpen(), paint, SkMatrix::I(),
+                            rect_.makeOffset(offset.x(), offset.y()), SkRect::MakeWH(1.0, 1.0));
 }
 
 }  // namespace flow

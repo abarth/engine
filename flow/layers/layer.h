@@ -33,7 +33,8 @@ class Layer {
   virtual ~Layer();
 
   struct PrerollContext {
-    PaintContext::ScopedFrame& frame;
+    GrContext* gr_context;
+    RasterCache* raster_cache;
     SkRect child_paint_bounds;
   };
 

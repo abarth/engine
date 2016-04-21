@@ -17,6 +17,10 @@ PictureQuad::~PictureQuad() {
 
 void PictureQuad::Rasterize(QuadRasterizer* rasterizer,
                             const SkPoint& paint_offset) const {
+  // LOG(INFO) << "PictureQuad::Rasterize offset_: ("
+  //           << offset_.x() << ", " << offset_.x() << ") "
+  //           << "paint_offset: (" << paint_offset.x() << ", " << paint_offset.x() << ") ";
+
   auto scope = rasterizer->GetCanvasScope();
   SkAutoCanvasRestore save(scope.canvas(), true);
   scope.canvas()->translate(offset_.x() + paint_offset.x(),
