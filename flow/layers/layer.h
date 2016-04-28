@@ -55,15 +55,22 @@ class Layer {
   };
 
   virtual void Paint(PaintContext& context) = 0;
-  virtual void UpdateScene(mojo::gfx::composition::SceneUpdate* update,
-                           mojo::gfx::composition::Node* container);
+
+  struct UpdateSceneContext {
+    const Stopwatch& frame_time;
+    const Stopwatch& engine_time;
+    mojo::gfx::composition::SceneUpdate* update;
+    mojo::gfx::composition::Node* container;
+  };
+
+  virtual void UpdateScene(const UpdateSceneContext& context);
 
   ContainerLayer* parent() const { return parent_; }
 
   void set_parent(ContainerLayer* parent) { parent_ = parent; }
 
   // subclasses should assume this will be true by the time Paint() is called
-  const bool has_paint_bounds() const { return has_paint_bounds_; }
+  bool has_paint_bounds() const { return has_paint_bounds_; }
 
   const SkRect& paint_bounds() const {
     DCHECK(has_paint_bounds_);
@@ -75,10 +82,18 @@ class Layer {
     paint_bounds_ = paint_bounds;
   }
 
+  bool needs_compositing() const { return needs_compositing_; }
+
+ protected:
+  void set_needs_compositing(bool needs_compositing) {
+    needs_compositing_ = needs_compositing;
+  }
+
  private:
   ContainerLayer* parent_;
   bool has_paint_bounds_; // if false, paint_bounds_ is not valid
   SkRect paint_bounds_;
+  bool needs_compositing_;
 
   DISALLOW_COPY_AND_ASSIGN(Layer);
 };

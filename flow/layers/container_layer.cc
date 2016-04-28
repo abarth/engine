@@ -25,10 +25,12 @@ void ContainerLayer::Preroll(PrerollContext* context, const SkMatrix& matrix) {
 void ContainerLayer::PrerollChildren(PrerollContext* context,
                                      const SkMatrix& matrix) {
   SkRect child_paint_bounds;
-  for (auto& layer : layers_) {
+  for (const auto& layer : layers_) {
     PrerollContext child_context = *context;
     layer->Preroll(&child_context, matrix);
     child_paint_bounds.join(child_context.child_paint_bounds);
+    if (layer->needs_compositing())
+      set_needs_compositing(true);
   }
   context->child_paint_bounds = child_paint_bounds;
 }
@@ -38,10 +40,18 @@ void ContainerLayer::PaintChildren(PaintContext& context) const {
     layer->Paint(context);
 }
 
-void ContainerLayer::UpdateScene(mojo::gfx::composition::SceneUpdate* update,
-                                 mojo::gfx::composition::Node* container) {
-  for (auto& layer : layers_)
-    layer->UpdateScene(update, container);
+void ContainerLayer::UpdateScene(const UpdateSceneContext& context) {
+  UpdateSceneChildren(context);
+}
+
+void ContainerLayer::UpdateSceneChildren(const UpdateSceneContext& context) {
+  for (auto& layer : layers_) {
+    if (layer->requires_compositing()) {
+      layer->UpdateScene(context);
+    } else {
+      
+    }
+  }
 }
 
 }  // namespace flow

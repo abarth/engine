@@ -95,10 +95,8 @@ void RasterizerDirect::Draw(uint64_t layer_tree_ptr,
     compositor_context_.Preroll(gr_context, layer_tree.get());
 
     // Create picture.
-    SkRect bounds = SkRect::MakeWH(layer_tree->frame_size().width(),
-                                   layer_tree->frame_size().height());
     flow::Layer* layer = layer_tree->root_layer();
-    picture = compositor_context_.Record(bounds, layer);
+    picture = compositor_context_.Record(layer_tree->GetBounds(), layer);
 
     // Rasterize.
     SkCanvas* canvas = ganesh_canvas_.GetCanvas(

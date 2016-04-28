@@ -22,19 +22,19 @@ void ChildSceneLayer::Preroll(PrerollContext* context, const SkMatrix& matrix) {
   transform_.preTranslate(offset_.x(), offset_.y());
   float inverse_device_pixel_ratio = 1.f / device_pixel_ratio_;
   transform_.preScale(inverse_device_pixel_ratio, inverse_device_pixel_ratio);
+  set_needs_compositing(true);
 }
 
 void ChildSceneLayer::Paint(PaintContext& context) {
 }
 
-void ChildSceneLayer::UpdateScene(mojo::gfx::composition::SceneUpdate* update,
-                                  mojo::gfx::composition::Node* container) {
+void ChildSceneLayer::UpdateScene(const UpdateSceneContext& context) {
   uint32_t id = next_id++;
 
   auto child_resource = mojo::gfx::composition::Resource::New();
   child_resource->set_scene(mojo::gfx::composition::SceneResource::New());
   child_resource->get_scene()->scene_token = scene_token_.Clone();
-  update->resources.insert(id, child_resource.Pass());
+  context.update->resources.insert(id, child_resource.Pass());
 
   auto child_node = mojo::gfx::composition::Node::New();
   child_node->op = mojo::gfx::composition::NodeOp::New();
@@ -44,8 +44,8 @@ void ChildSceneLayer::UpdateScene(mojo::gfx::composition::SceneUpdate* update,
   child_node->content_clip->width = physical_size_.width();
   child_node->content_clip->height = physical_size_.height();
   child_node->content_transform = mojo::Transform::From(transform_);
-  update->nodes.insert(id, child_node.Pass());
-  container->child_node_ids.push_back(id);
+  context.update->nodes.insert(id, child_node.Pass());
+  context.container->child_node_ids.push_back(id);
 }
 
 }  // namespace flow

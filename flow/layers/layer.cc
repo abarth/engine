@@ -11,7 +11,8 @@ namespace flow {
 Layer::Layer()
     : parent_(nullptr)
     , has_paint_bounds_(false)
-    , paint_bounds_() {
+    , needs_compositing_(false) {
+  paint_bounds_.setEmpty();
 }
 
 Layer::~Layer() {
@@ -20,8 +21,7 @@ Layer::~Layer() {
 void Layer::Preroll(PrerollContext* context, const SkMatrix& matrix) {
 }
 
-void Layer::UpdateScene(mojo::gfx::composition::SceneUpdate* update,
-                        mojo::gfx::composition::Node* container) {
+void Layer::UpdateScene(const UpdateSceneContext& context) {
 }
 
 }  // namespace flow

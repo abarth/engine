@@ -19,10 +19,4 @@ SkRect LayerTree::GetBounds() const {
   return SkRect::MakeWH(frame_size_.width(), frame_size_.height());
 }
 
-void LayerTree::UpdateScene(mojo::gfx::composition::SceneUpdate* update,
-                            mojo::gfx::composition::Node* container) {
-  TRACE_EVENT0("flutter", "LayerTree::UpdateScene");
-  root_layer_->UpdateScene(update, container);
-}
-
 }  // namespace flow

@@ -22,8 +22,8 @@ class ContainerLayer : public Layer {
 
   void PaintChildren(PaintContext& context) const;
 
-  void UpdateScene(mojo::gfx::composition::SceneUpdate* update,
-                   mojo::gfx::composition::Node* container) override;
+  void UpdateScene(const UpdateSceneContext& context) override;
+  void UpdateSceneChildren(const UpdateSceneContext& context);
 
   const std::vector<std::unique_ptr<Layer>>& layers() const { return layers_; }
 

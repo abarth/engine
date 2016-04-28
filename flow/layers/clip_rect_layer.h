@@ -19,6 +19,7 @@ class ClipRectLayer : public ContainerLayer {
  protected:
   void Preroll(PrerollContext* context, const SkMatrix& matrix) override;
   void Paint(PaintContext& context) override;
+  void UpdateScene(const UpdateSceneContext& context) override;
 
  private:
   SkRect clip_rect_;
