@@ -13,6 +13,8 @@ sky_core_files = [
   "compositing/Scene.h",
   "compositing/SceneBuilder.cpp",
   "compositing/SceneBuilder.h",
+  "compositing/buffer_decoder.cc",
+  "compositing/buffer_decoder.h",
   "editing/CompositionUnderline.h",
   "editing/CompositionUnderlineRangeFilter.cpp",
   "editing/CompositionUnderlineRangeFilter.h",

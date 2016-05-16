@@ -4,6 +4,8 @@
 
 source_set("tonic") {
   sources = [
+    "byte_data.cc",
+    "byte_data.h",
     "dart_api_scope.h",
     "dart_args.h",
     "dart_binding_macros.h",

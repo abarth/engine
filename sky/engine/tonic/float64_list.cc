@@ -2,8 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "sky/engine/tonic/dart_error.h"
 #include "sky/engine/tonic/float64_list.h"
+
+#include "sky/engine/tonic/dart_error.h"
 
 namespace blink {
 
@@ -41,15 +42,12 @@ Float64List DartConverter<Float64List>::FromArguments(
     Dart_Handle& exception) {
   Dart_Handle list = Dart_GetNativeArgument(args, index);
   DCHECK(!LogIfError(list));
-
-  Float64List result(list);
-  return result;
+  return Float64List(list);
 }
 
 void DartConverter<Float64List>::SetReturnValue(Dart_NativeArguments args,
                                                 Float64List val) {
   Dart_SetReturnValue(args, val.dart_handle());
 }
-
 
 } // namespace blink

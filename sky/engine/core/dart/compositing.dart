@@ -23,6 +23,90 @@ class Scene extends NativeFieldWrapperClass2 {
   void dispose() native "Scene_dispose";
 }
 
+class _EncodedBuffer {
+  int _nextIndex = 0;
+  int _length = _kInitialBufferSize;
+  final List<dynamic> objects = <dynamic>[];
+  Float64List _float64;
+  Int64List _int64;
+
+  static const int _kInitialBufferSize = 1024;
+
+  _EncodedBuffer() {
+    _int64 = new Int64List(_kInitialBufferSize);
+    _float64 = _int64.buffer.asFloat64List();
+  }
+
+  void _grow(int newSize) {
+    UInt32List oldBuffer = _int64.buffer.asUint32List();
+    UInt32List newBuffer = new Int32List(2 * newSize);
+    int newIndex = 0;
+    for (int i = 0; i < oldBuffer.length; ++i)
+      newBuffer[newIndex++] = oldBuffer[i];
+    _length = newSize;
+    ByteBuffer buffer = newBuffer.buffer;
+    _float64 = buffer.asFloat64List();
+    _int64 = buffer.asInt64List();
+  }
+
+  int _advance(int count) {
+    final int startIndex = _nextIndex;
+    _nextIndex += count;
+    if (_nextIndex > _length) {
+      int newSize = _length + count;
+      newSize += (newSize >> 1);
+      _grow(newSize);
+    }
+    return startIndex;
+  }
+
+  ByteData get trimmed => new ByteData.view(_int64.buffer, 0, _nextIndex * Int64List.BYTES_PER_ELEMENT);
+
+  void writeFloat64List(Float64List data) {
+    final int length = data.length;
+    final int startIndex = _advance(length);
+    for (int i = 0; i < length; ++i)
+      _float64[startIndex + i] = data[i];
+  }
+
+  void writeFloat32List(Float32List data) {
+    final int length = data.length;
+    final int startIndex = _advance(length);
+    for (int i = 0; i < length; ++i)
+      _float64[startIndex + i] = data[i];
+  }
+
+  void writeFloat64(double a) {
+    _float64[_advance(1)] = a;
+  }
+
+  void write2xFloat64(double a, double b) {
+    final int startIndex = _advance(2);
+    _float64[startIndex] = a;
+    _float64[startIndex + 1] = b;
+  }
+
+  void writeInt64(int a) {
+    _int64[_advance(1)] = a;
+  }
+}
+
+// Keep in sync with SceneRecordType in SceneBuilder.cpp.
+enum _SceneRecordType {
+  pushTransform,
+  pushClipRect,
+  pushClipRRect,
+  pushClipPath,
+  pushOpacity,
+  pushColorFilter,
+  pushBackdropFilter,
+  pushShaderMask,
+  pop,
+  addPerformanceOverlay,
+  addPicture,
+  addChildScene,
+}
+
 /// Builds a [Scene] containing the given visuals.
 ///
 /// A [Scene] can then be rendered using [Window.render].
@@ -31,6 +115,8 @@ class Scene extends NativeFieldWrapperClass2 {
 /// [Picture] using a [PictureRecorder] and a [Canvas], and then add
 /// it to the scene using [addPicture].
 class SceneBuilder extends NativeFieldWrapperClass2 {
+  _EncodedBuffer _recording = new _EncodedBuffer();
+
   /// Creates an empty [SceneBuilder] object.
   SceneBuilder() { _constructor(); }
   void _constructor() native "SceneBuilder_constructor";
@@ -40,7 +126,12 @@ class SceneBuilder extends NativeFieldWrapperClass2 {
   /// The objects are transformed by the given matrix before rasterization.
   ///
   /// See [pop] for details about the operation stack.
-  void pushTransform(Float64List matrix4) native "SceneBuilder_pushTransform";
+  void pushTransform(Float64List matrix4) {
+    assert(matrix4.length == 16);
+    _recording
+      ..writeInt64(_SceneRecordType.pushTransform.index)
+      ..writeFloat64List(matrix4);
+  }
 
   /// Pushes a rectangular clip operation onto the operation stack.
   ///
@@ -48,26 +139,32 @@ class SceneBuilder extends NativeFieldWrapperClass2 {
   ///
   /// See [pop] for details about the operation stack.
   void pushClipRect(Rect rect) {
-    _pushClipRect(rect.left, rect.right, rect.top, rect.bottom);
+    _recording
+      ..writeInt64(_SceneRecordType.pushClipRect.index)
+      ..writeFloat32List(rect._value);
   }
-  void _pushClipRect(double left,
-                     double right,
-                     double top,
-                     double bottom) native "SceneBuilder_pushClipRect";
 
   /// Pushes a rounded-rectangular clip operation onto the operation stack.
   ///
   /// Rasterization outside the given rounded rectangle is discarded.
   ///
   /// See [pop] for details about the operation stack.
-  void pushClipRRect(RRect rrect) native "SceneBuilder_pushClipRRect";
+  void pushClipRRect(RRect rrect) {
+    _recording
+      ..writeInt64(_SceneRecordType.pushClipRRect.index)
+      ..writeFloat32List(rrect._value);
+  }
 
   /// Pushes a path clip operation onto the operation stack.
   ///
   /// Rasterization outside the given path is discarded.
   ///
   /// See [pop] for details about the operation stack.
-  void pushClipPath(Path path) native "SceneBuilder_pushClipPath";
+  void pushClipPath(Path path) {
+    _recording
+      ..writeInt64(_SceneRecordType.pushClipPath.index)
+      ..writeFloat32List(rrect._value);
+  }
 
   /// Pushes an opacity operation onto the operation stack.
   ///
@@ -77,7 +174,11 @@ class SceneBuilder extends NativeFieldWrapperClass2 {
   /// opacity).
   ///
   /// See [pop] for details about the operation stack.
-  void pushOpacity(int alpha) native "SceneBuilder_pushOpacity";
+  void pushOpacity(int alpha) {
+    _recording
+      ..writeInt64(_SceneRecordType.pushOpacity.index)
+      ..writeInt64(alpha);
+  }
 
   /// Pushes a color filter operation onto the operation stack.
   ///
@@ -86,9 +187,11 @@ class SceneBuilder extends NativeFieldWrapperClass2 {
   ///
   /// See [pop] for details about the operation stack.
   void pushColorFilter(Color color, TransferMode transferMode) {
-    _pushColorFilter(color.value, transferMode.index);
+    _recording
+      ..writeInt64(_SceneRecordType.pushColorFilter.index)
+      ..writeInt64(color._value);
+      ..writeInt64(transferMode.index);
   }
-  void _pushColorFilter(int color, int transferMode) native "SceneBuilder_pushColorFilter";
 
   /// Pushes a backdrop filter operation onto the operation stack.
   ///
@@ -96,7 +199,11 @@ class SceneBuilder extends NativeFieldWrapperClass2 {
   /// rasterizing the given objects.
   ///
   /// See [pop] for details about the operation stack.
-  void pushBackdropFilter(ImageFilter filter) native "SceneBuilder_pushBackdropFilter";
+  void pushBackdropFilter(ImageFilter filter) {
+    _recording
+      ..writeInt64(_SceneRecordType.pushBackdropFilter.index)
+      ..objects.add(filter);
+  }
 
   /// Pushes a shader mask operation onto the operation stack.
   ///
@@ -105,19 +212,12 @@ class SceneBuilder extends NativeFieldWrapperClass2 {
   ///
   /// See [pop] for details about the operation stack.
   void pushShaderMask(Shader shader, Rect maskRect, TransferMode transferMode) {
-    _pushShaderMask(shader,
-                    maskRect.left,
-                    maskRect.right,
-                    maskRect.top,
-                    maskRect.bottom,
-                    transferMode.index);
+    _recording
+      ..writeInt64(_SceneRecordType.pushShaderMask.index)
+      ..objects.add(filter)
+      ..writeFloat32List(maskRect._value)
+      ..writeInt64(transferMode.index);
   }
-  void _pushShaderMask(Shader shader,
-                       double maskRectLeft,
-                       double maskRectRight,
-                       double maskRectTop,
-                       double maskRectBottom,
-                       int transferMode) native "SceneBuilder_pushShaderMask";
 
   /// Ends the effect of the most recently pushed operation.
   ///
@@ -125,7 +225,9 @@ class SceneBuilder extends NativeFieldWrapperClass2 {
   /// operations in the stack applies to each of the objects added to the scene.
   /// Calling this function removes the most recently added operation from the
   /// stack.
-  void pop() native "SceneBuilder_pop";
+  void pop() {
+    _recording.writeInt64(_SceneRecordType.pop.index);
+  }
 
   /// Adds an object to the scene that displays performance statistics.
   ///
@@ -152,25 +254,21 @@ class SceneBuilder extends NativeFieldWrapperClass2 {
   /// for more details.
   // Values above must match constants in //engine/src/sky/compositor/performance_overlay_layer.h
   void addPerformanceOverlay(int enabledOptions, Rect bounds) {
-    _addPerformanceOverlay(enabledOptions,
-                           bounds.left,
-                           bounds.right,
-                           bounds.top,
-                           bounds.bottom);
+    _recording
+      ..writeInt64(_SceneRecordType.addPerformanceOverlay.index)
+      ..writeInt64(enabledOptions)
+      ..writeFloat32List(bounds._value);
   }
-  void _addPerformanceOverlay(int enabledOptions,
-                              double left,
-                              double right,
-                              double top,
-                              double bottom) native "SceneBuilder_addPerformanceOverlay";
 
   /// Adds a [Picture] to the scene.
   ///
   /// The picture is rasterized at the given offset.
   void addPicture(Offset offset, Picture picture) {
-    _addPicture(offset.dx, offset.dy, picture);
+    _recording
+      ..writeInt64(_SceneRecordType.addPicture.index)
+      ..write2xFloat64(offset.dx, offset.dy)
+      ..objects.add(picture);
   }
-  void _addPicture(double dx, double dy, Picture picture) native "SceneBuilder_addPicture";
 
   /// (mojo-only) Adds a scene rendered by another application to the scene for
   /// this application.
@@ -183,19 +281,14 @@ class SceneBuilder extends NativeFieldWrapperClass2 {
                      int physicalWidth,
                      int physicalHeight,
                      int sceneToken) {
-    _addChildScene(offset.dx,
-                   offset.dy,
-                   devicePixelRatio,
-                   physicalWidth,
-                   physicalHeight,
-                   sceneToken);
+    _recording
+      ..writeInt64(_SceneRecordType.addChildScene.index)
+      ..write2xFloat64(offset.dx, offset.dy)
+      ..writeFloat64(devicePixelRatio)
+      ..writeInt64(physicalWidth)
+      ..writeInt64(physicalHeight)
+      ..writeInt64(sceneToken);
   }
-  void _addChildScene(double dx,
-                      double dy,
-                      double devicePixelRatio,
-                      int physicalWidth,
-                      int physicalHeight,
-                      int sceneToken) native "SceneBuilder_addChildScene";
 
   /// Sets a threshold after which additional debugging information should be recorded.
   ///
@@ -213,5 +306,10 @@ class SceneBuilder extends NativeFieldWrapperClass2 {
   ///
   /// After calling this function, the scene builder object is invalid and
   /// cannot be used further.
-  Scene build() native "SceneBuilder_build";
+  Scene build() {
+    Scene result = _build(_recording.trimmed, _recording.objects);
+    _recording = null;
+    return result;
+  }
+  Scene _build(ByteData buffer, List<dynamic> objects) native "SceneBuilder_build";
 }

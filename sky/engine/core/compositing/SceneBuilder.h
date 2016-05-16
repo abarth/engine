@@ -7,6 +7,7 @@
 
 #include <stdint.h>
 #include <memory>
+#include <vector>
 
 #include "flow/layers/container_layer.h"
 #include "sky/engine/bindings/exception_state.h"
@@ -20,7 +21,7 @@
 #include "sky/engine/core/painting/Rect.h"
 #include "sky/engine/core/painting/RRect.h"
 #include "sky/engine/tonic/dart_wrappable.h"
-#include "sky/engine/tonic/float64_list.h"
+#include "sky/engine/tonic/byte_data.h"
 #include "sky/engine/wtf/PassRefPtr.h"
 #include "sky/engine/wtf/ThreadSafeRefCounted.h"
 
@@ -35,26 +36,29 @@ public:
 
     ~SceneBuilder() override;
 
-    void pushTransform(const Float64List& matrix4, ExceptionState&);
-    void pushClipRect(double left, double right, double top, double bottom);
-    void pushClipRRect(const RRect& rrect);
+    void setRasterizerTracingThreshold(uint32_t frameInterval);
+
+    PassRefPtr<Scene> build(const ByteData& buffer,
+                            const std::vector<Dart_Handle>& objects);
+
+    static void RegisterNatives(DartLibraryNatives* natives);
+
+private:
+    explicit SceneBuilder();
+
+    void pushTransform(const SkMatrix& matrix);
+    void pushClipRect(const SkRect& rect);
+    void pushClipRRect(const SkRRect& rrect);
     void pushClipPath(const CanvasPath* path);
     void pushOpacity(int alpha);
-    void pushColorFilter(int color, int transferMode);
+    void pushColorFilter(int color, int transfer_mode);
     void pushBackdropFilter(ImageFilter* filter);
     void pushShaderMask(Shader* shader,
-                        double maskRectLeft,
-                        double maskRectRight,
-                        double maskRectTop,
-                        double maskRectBottom,
-                        int transferMode);
+                        const SkRect& mask_rect,
+                        int transfer_mode);
     void pop();
 
-    void addPerformanceOverlay(uint64_t enabledOptions,
-                               double left,
-                               double right,
-                               double top,
-                               double bottom);
+    void addPerformanceOverlay(uint64_t enabledOptions, SkRect rect);
     void addPicture(double dx, double dy, Picture* picture);
     void addChildScene(double dx,
                        double dy,
@@ -62,15 +66,6 @@ public:
                        int physicalWidth,
                        int physicalHeight,
                        uint32_t sceneToken);
-
-    void setRasterizerTracingThreshold(uint32_t frameInterval);
-
-    PassRefPtr<Scene> build();
-
-    static void RegisterNatives(DartLibraryNatives* natives);
-
-private:
-    explicit SceneBuilder();
 
     void addLayer(std::unique_ptr<flow::ContainerLayer> layer);
 

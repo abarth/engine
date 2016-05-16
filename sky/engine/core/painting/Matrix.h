@@ -15,6 +15,7 @@ namespace blink {
 // inside the VM.
 SkMatrix toSkMatrix(const Float64List& matrix4, ExceptionState& es);
 
+SkMatrix toSkMatrix(double matrix4[16]);
 SkMatrix toSkMatrix(const Float64List& matrix4);
 Float64List toMatrix4(const SkMatrix& sk_matrix);
 

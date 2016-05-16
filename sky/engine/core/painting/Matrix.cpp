@@ -27,6 +27,16 @@ SkMatrix toSkMatrix(const Float64List& matrix4, ExceptionState& es)
     return sk_matrix;
 }
 
+SkMatrix toSkMatrix(double matrix4[16])
+{
+    SkMatrix sk_matrix;
+    for (int i = 0; i < 9; ++i) {
+        int matrix4_index = kSkMatrixIndexToMatrix4Index[i];
+        sk_matrix[i] = matrix4[matrix4_index];
+    }
+    return sk_matrix;
+}
+
 SkMatrix toSkMatrix(const Float64List& matrix4)
 {
     ASSERT(matrix4.data());
