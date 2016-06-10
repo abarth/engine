@@ -129,6 +129,13 @@ void InitDartVM(const base::FilePath& snapshot_dir) {
       << "Error while initializing the Dart VM: " << init_error;
   CHECK(init_error == nullptr);
   free(init_error);
+
+  char* error = nullptr;
+  Dart_Isolate isolate = Dart_CreateIsolate(
+      "about:blank", "main", g_isolate_snapshot, nullptr, nullptr, &error);
+  CHECK(isolate) << error;
+  Dart_ExitIsolate();
+  LOG(INFO) << "InitDartVM (end)";
 }
 
 }  // namespace flutter
