@@ -1,0 +1,93 @@
+# Copyright 2016 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//build/config/ui.gni")
+import("//build/config/android/config.gni")
+import("//build/config/android/rules.gni")
+
+assert(is_android)
+
+generate_jni("jni_headers") {
+  sources = [
+    "src/io/flutter/view/FlutterMain.java",
+    "src/io/flutter/view/FlutterView.java",
+  ]
+  jni_package = "flutter"
+}
+
+shared_library("lib") {
+  output_name = "FlutterView"
+
+  sources = [
+    "flutter_main.cc",
+    "flutter_main.h",
+    "flutter_view.cc",
+    "flutter_view.h",
+    "library_loader.cc",
+  ]
+
+  deps = [
+    "//base",
+    "//flutter/content",
+    ":jni_headers",
+  ]
+
+  libs = [ "android" ]
+
+  ldflags = [
+    "-lGLESv2",
+    "-lEGL",
+  ]
+}
+
+android_library("java") {
+  java_files = [
+    "src/io/flutter/shell/FlutterActivity.java",
+    "src/io/flutter/shell/FlutterApplication.java",
+    "src/io/flutter/view/FlutterMain.java",
+    "src/io/flutter/view/FlutterView.java",
+  ]
+
+  deps = [
+    "//base:base_java",
+  ]
+}
+
+copy_ex("assets") {
+  clear_dir = true
+  dest = "$root_build_dir/flutter_view/assets"
+  sources = [
+    "$root_build_dir/icudtl.dat",
+    "aot/snapshot_aot_isolate",
+    "aot/snapshot_aot_vmisolate",
+    "aot/snapshot_aot_instr",
+    "aot/snapshot_aot_rodata",
+  ]
+  deps = [
+    "//third_party/icu:icudata",
+  ]
+}
+
+android_apk("shell") {
+  apk_name = "FlutterShell"
+  android_manifest = "AndroidManifest.xml"
+
+  native_libs = [ "libFlutterView.so" ]
+  asset_location = "$root_build_dir/flutter_view/assets"
+
+  extensions_to_not_compress = ".flx"
+
+  deps = [
+    "//base:base_java",
+    ":assets",
+    ":java",
+    ":lib",
+  ]
+}
+
+group("android") {
+  deps = [
+    ":shell",
+  ]
+}

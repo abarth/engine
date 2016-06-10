@@ -9,6 +9,12 @@ group("default") {
     "//sky",
   ]
 
+  if (is_android) {
+    deps += [
+      "//flutter/view/android",
+    ]
+  }
+
   if (is_ios) {
     deps += [
       "//sky/services/dynamic:sdk_lib_archive",
