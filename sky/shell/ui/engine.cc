@@ -14,11 +14,11 @@
 #include "flutter/glue/movable_wrapper.h"
 #include "flutter/glue/trace_event.h"
 #include "flutter/lib/ui/mojo_services.h"
+#include "flutter/runtime/asset_font_selector.h"
 #include "flutter/runtime/dart_controller.h"
 #include "flutter/runtime/dart_init.h"
 #include "flutter/sky/engine/public/web/Sky.h"
 #include "flutter/sky/shell/ui/animator.h"
-#include "flutter/sky/shell/ui/flutter_font_selector.h"
 #include "flutter/sky/shell/ui/platform_impl.h"
 #include "lib/ftl/files/path.h"
 #include "mojo/public/cpp/application/connect.h"
@@ -297,7 +297,7 @@ void Engine::DidCreateMainIsolate(Dart_Isolate isolate) {
                               root_bundle_.Pass());
 
   if (asset_store_)
-    FlutterFontSelector::Install(asset_store_);
+    blink::AssetFontSelector::Install(asset_store_);
 }
 
 void Engine::DidCreateSecondaryIsolate(Dart_Isolate isolate) {

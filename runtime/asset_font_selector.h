@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef SKY_SHELL_UI_FLUTTER_FONT_SELECTOR_H_
-#define SKY_SHELL_UI_FLUTTER_FONT_SELECTOR_H_
+#ifndef FLUTTER_RUNTIME_ASSET_FONT_SELECTOR_H_
+#define FLUTTER_RUNTIME_ASSET_FONT_SELECTOR_H_
 
 #include <unordered_map>
 #include <vector>
@@ -13,16 +13,15 @@
 #include "flutter/sky/engine/platform/fonts/FontSelector.h"
 #include "flutter/sky/engine/platform/fonts/SimpleFontData.h"
 
-namespace sky {
-namespace shell {
+namespace blink {
 
 // A FontSelector implementation that resolves custon font names to assets
 // loaded from the FLX.
-class FlutterFontSelector : public blink::FontSelector {
+class AssetFontSelector : public FontSelector {
  public:
   struct FlutterFontAttributes;
 
-  ~FlutterFontSelector() override;
+  ~AssetFontSelector() override;
 
   static void Install(ftl::RefPtr<blink::ZipAssetStore> asset_store);
 
@@ -41,7 +40,7 @@ class FlutterFontSelector : public blink::FontSelector {
  private:
   struct TypefaceAsset;
 
-  FlutterFontSelector(ftl::RefPtr<blink::ZipAssetStore> asset_store);
+  AssetFontSelector(ftl::RefPtr<blink::ZipAssetStore> asset_store);
 
   void parseFontManifest();
 
@@ -65,7 +64,6 @@ class FlutterFontSelector : public blink::FontSelector {
   FontPlatformDataCache font_platform_data_cache_;
 };
 
-}  // namespace shell
-}  // namespace sky
+}  // namespace blink
 
-#endif  // SKY_SHELL_UI_FLUTTER_FONT_SELECTOR_H_
+#endif  // FLUTTER_RUNTIME_ASSET_FONT_SELECTOR_H_
