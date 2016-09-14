@@ -17,14 +17,16 @@
 
 #include <vector>
 
-#include <magenta/types.h>
-#include <magenta/device/display.h>
+#include <magenta/device/device.h>
 #include <magenta/device/input.h>
 #include <magenta/syscalls.h>
+#include <magenta/types.h>
 #include <mxio/io.h>
 
 #include <hid/acer12.h>
 #include <hid/usages.h>
+
+#include "lib/ftl/time/time_point.h"
 
 namespace flutter_content_handler {
 namespace {
@@ -34,7 +36,7 @@ constexpr char kDevInput[] = "/dev/class/input";
 ftl::UniqueFD GetTouchFD() {
   DIR* dir = ::opendir(kDevInput);
   if (!dir)
-    return -1;
+    return ftl::UniqueFD();
 
   std::string device_dir = kDevInput;
   device_dir += "/";
@@ -67,18 +69,26 @@ ftl::UniqueFD GetTouchFD() {
     if (!memcmp(report_desc.data(), acer12_touch_report_desc,
                 ACER12_RPT_DESC_LEN)) {
       closedir(dir);
-      return std::move(fd);
+      return fd;
     }
   }
   closedir(dir);
   return ftl::UniqueFD();
 }
 
+void WaitComplete(void* closure, MojoResult result) {
+  static_cast<Acer12TouchInput*>(closure)->DidBecomeReadable();
+}
+
 }  // namespace
 
-Acer12TouchInput::Acer12TouchInput() = default;
+Acer12TouchInput::Acer12TouchInput(const MojoAsyncWaiter* waiter)
+    : waiter_(waiter) {}
 
-Acer12TouchInput::~Acer12TouchInput() = default;
+Acer12TouchInput::~Acer12TouchInput() {
+  if (wait_id_)
+    waiter_->CancelWait(wait_id_);
+}
 
 void Acer12TouchInput::Start() {
   fd_ = GetTouchFD();
@@ -92,7 +102,22 @@ void Acer12TouchInput::Start() {
     return;
 
   buffer_.resize(max_report_len);
-  // TODO(abarth): Watch for events.
+
+  mx_handle_t input_event = 0;
+  ret = mxio_ioctl(fd_.get(), IOCTL_DEVICE_GET_EVENT_HANDLE, nullptr, 0,
+                   &input_event, sizeof(input_event));
+
+  if (ret < 0)
+    return;
+
+  input_event_.reset(input_event);
+  WaitForInput();
+}
+
+void Acer12TouchInput::WaitForInput() {
+  wait_id_ =
+      waiter_->AsyncWait(MojoHandle(input_event_.get()), DEVICE_SIGNAL_READABLE,
+                         MOJO_DEADLINE_INDEFINITE, WaitComplete, this);
 }
 
 void Acer12TouchInput::DidBecomeReadable() {
@@ -102,21 +127,62 @@ void Acer12TouchInput::DidBecomeReadable() {
   if (buffer_[0] != ACER12_RPT_ID_TOUCH)
     return;
 
-  auto packet = pointer::PointerPacket::New();
-
+  auto pointer_packet = pointer::PointerPacket::New();
   acer12_touch_t* report = reinterpret_cast<acer12_touch_t*>(buffer_.data());
 
-  for (uint8_t i = 0; i < 5; ++i) {
+  // The first packet gives us the total count of all contacts. The second
+  // packet will have a count of zero, which means we need to remember the count
+  // from the previous packet and subtract the five we already processed.
+  // In any case, we should never have a count for a single package that's
+  // greater than 5 because that's all the room there is in a single packet.
+  int count = report->contact_count;
+  if (!count)
+    count = last_contact_count_ - 5;
+  last_contact_count_ = report->contact_count;
+  if (count > 5)
+    count = 5;
+
+  // TODO(abarth): Consider using the scan time, which is in a different time
+  // base.
+  int time_stamp = (ftl::TimePoint::Now() - ftl::TimePoint()).ToMicroseconds();
+
+  for (uint8_t i = 0; i < count; ++i) {
     const acer12_finger& finger = report->fingers[i];
-    if (!finger.finger_id)
-      continue;
+    bool down = acer12_finger_id_tswitch(finger.finger_id);
     int id = acer12_finger_id_contact(finger.finger_id);
     int x = finger.x * width_ / ACER12_X_MAX;
     int y = finger.y * height_ / ACER12_Y_MAX;
 
-    // if (!acer12_finger_id_tswitch(finger.finger_id))
-    //   continue;
+    // FTL_LOG(INFO) << "id=" << id << " x=" << x << " y" << y << " down=" <<
+    // down;
+
+    bool was_down = down_pointers_.count(id) > 0;
+    if (down)
+      down_pointers_.insert(id);
+    else
+      down_pointers_.erase(id);
+
+    auto pointer_data = pointer::Pointer::New();
+    pointer_data->time_stamp = time_stamp;
+    pointer_data->pointer = id;
+    if (!down)
+      pointer_data->type = pointer::PointerType::UP;
+    else if (was_down)
+      pointer_data->type = pointer::PointerType::MOVE;
+    else
+      pointer_data->type = pointer::PointerType::DOWN;
+    pointer_data->kind = pointer::PointerKind::TOUCH;
+    pointer_data->x = x;
+    pointer_data->y = y;
+    pointer_data->pressure = 1.0;
+    pointer_data->pressure_max = 1.0;
+
+    pointer_packet->pointers.push_back(pointer_data.Pass());
   }
+
+  if (event_sink_)
+    event_sink_(std::move(pointer_packet));
+  WaitForInput();
 }
 
 }  // namespace flutter_content_handler

@@ -7,6 +7,7 @@
 
 #include "flutter/assets/unzipper_provider.h"
 #include "flutter/assets/zip_asset_store.h"
+#include "flutter/content_handler/acer12_touch_input.h"
 #include "flutter/flow/layers/layer_tree.h"
 #include "flutter/runtime/runtime_controller.h"
 #include "flutter/runtime/runtime_delegate.h"
@@ -61,6 +62,8 @@ class RuntimeHolder : public blink::RuntimeDelegate {
   bool did_defer_frame_request_ = false;
   bool is_ready_to_draw_ = false;
   int outstanding_requests_ = 0;
+
+  Acer12TouchInput touch_input_;
 
   ftl::WeakPtrFactory<RuntimeHolder> weak_factory_;
 

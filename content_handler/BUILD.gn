@@ -8,6 +8,8 @@ executable("content_handler") {
   output_name = "flutter_content_handler"
 
   sources = [
+    "acer12_touch_input.cc",
+    "acer12_touch_input.h",
     "application_impl.cc",
     "application_impl.h",
     "content_handler_impl.cc",
@@ -38,6 +40,7 @@ executable("content_handler") {
     "//lib/zip",
     "//mojo/public/cpp/application",
     "//mojo/public/cpp/bindings",
+    "//mojo/public/cpp/environment",
     "//mojo/public/cpp/system",
     "//mojo/public/interfaces/application",
     "//mojo/services/asset_bundle/interfaces",
@@ -49,5 +52,9 @@ executable("content_handler") {
     # TODO(abarth): We shouldn't need to depend on libdart_builtin but we fail
     # to link otherwise.
     "//dart/runtime/bin:libdart_builtin",
+  ]
+
+  libs = [
+    "hid",
   ]
 }

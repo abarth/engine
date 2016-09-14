@@ -51,6 +51,22 @@ void RuntimeHolder::Init(mojo::ApplicationConnectorPtr connector) {
     if (self)
       self->DidCreateFramebuffer(std::move(framebuffer), std::move(info));
   }));
+
+  touch_input_.set_event_sink([this](pointer::PointerPacketPtr packet) {
+    // TODO(abarth): Handle device pixel ratio (or change the Dart code to
+    // expect physical pixels).
+    if (runtime_) {
+      // Convert the pointers' x and y coordinates to logical pixels.
+      for (auto it = packet->pointers.begin(); it != packet->pointers.end();
+           ++it) {
+        (*it)->x /= viewport_metrics_->device_pixel_ratio;
+        (*it)->y /= viewport_metrics_->device_pixel_ratio;
+      }
+
+      runtime_->HandlePointerPacket(packet);
+    }
+  });
+  touch_input_.Start();
 }
 
 void RuntimeHolder::Run(const std::string& script_uri,
@@ -132,6 +148,10 @@ blink::UnzipperProvider RuntimeHolder::GetUnzipperProviderForRootBundle() {
 void RuntimeHolder::DidCreateFramebuffer(
     mojo::InterfaceHandle<mojo::Framebuffer> framebuffer,
     mojo::FramebufferInfoPtr info) {
+  touch_input_.set_width(info->size->width);
+  touch_input_.set_height(info->size->height);
+
+  viewport_metrics_->device_pixel_ratio = 2.0;
   viewport_metrics_->physical_width = info->size->width;
   viewport_metrics_->physical_height = info->size->height;
   if (runtime_)
