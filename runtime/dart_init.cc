@@ -104,15 +104,6 @@ static const char* kDartBackgroundCompilationArgs[] = {
     "--background_compilation",
 };
 
-static const char* kDartCheckedModeArgs[] = {
-    // clang-format off
-    "--enable_asserts",
-    "--enable_type_checks",
-    "--error_on_bad_type",
-    "--error_on_bad_override",
-    // clang-format on
-};
-
 static const char* kDartStartPausedArgs[]{
     "--pause_isolates_on_start",
 };
@@ -136,8 +127,7 @@ RegisterNativeServiceProtocolExtensionHook
 void IsolateShutdownCallback(void* callback_data) {
   if (tonic::DartStickyError::IsSet()) {
     tonic::DartApiScope api_scope;
-    FTL_LOG(ERROR) << "Isolate "
-                   << tonic::StdStringFromDart(Dart_DebugName())
+    FTL_LOG(ERROR) << "Isolate " << tonic::StdStringFromDart(Dart_DebugName())
                    << " exited with an error";
     Dart_Handle sticky_error = Dart_GetStickyError();
     FTL_CHECK(LogIfError(sticky_error));
@@ -191,9 +181,8 @@ static bool StringEndsWith(const std::string& string,
   if (ending.size() > string.size())
     return false;
 
-  return string.compare(string.size() - ending.size(),
-                        ending.size(),
-                        ending) == 0;
+  return string.compare(string.size() - ending.size(), ending.size(), ending) ==
+         0;
 }
 
 #if FLUTTER_RUNTIME_MODE == FLUTTER_RUNTIME_MODE_RELEASE
@@ -605,12 +594,6 @@ void InitDartVM() {
   if (IsRunningPrecompiledCode()) {
     PushBackAll(&args, kDartPrecompilationArgs,
                 arraysize(kDartPrecompilationArgs));
-  }
-
-  if (!IsRunningPrecompiledCode()) {
-    // Enable checked mode if we are not running precompiled code. We run non-
-    // precompiled code only in the debug product mode.
-    PushBackAll(&args, kDartCheckedModeArgs, arraysize(kDartCheckedModeArgs));
   }
 
   if (settings.start_paused)
