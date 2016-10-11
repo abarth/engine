@@ -5,11 +5,13 @@
 #ifndef FLUTTER_CONTENT_HANDLER_RASTERIZER_H_
 #define FLUTTER_CONTENT_HANDLER_RASTERIZER_H_
 
-#include "apps/mozart/services/composition/interfaces/scenes.mojom.h"
+#include "flutter/content_handler/framebuffer_skia.h"
 #include "flutter/flow/compositor_context.h"
 #include "flutter/flow/layers/layer_tree.h"
 #include "lib/ftl/functional/closure.h"
 #include "lib/ftl/macros.h"
+#include "mojo/services/framebuffer/interfaces/framebuffer.mojom.h"
+#include "third_party/skia/include/core/SkSurface.h"
 
 namespace flutter_content_handler {
 
@@ -18,12 +20,14 @@ class Rasterizer {
   Rasterizer();
   ~Rasterizer();
 
-  void SetScene(mojo::InterfaceHandle<mozart::Scene> scene);
+  void SetFramebuffer(mojo::InterfaceHandle<mojo::Framebuffer> framebuffer,
+                      mojo::FramebufferInfoPtr info);
 
   void Draw(std::unique_ptr<flow::LayerTree> layer_tree, ftl::Closure callback);
 
  private:
-  mozart::ScenePtr scene_;
+  FramebufferSkia framebuffer_;
+  sk_sp<SkSurface> surface_;
   flow::CompositorContext compositor_context_;
 
   FTL_DISALLOW_COPY_AND_ASSIGN(Rasterizer);
