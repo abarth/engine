@@ -14,24 +14,47 @@
 namespace blink {
 namespace {
 
-Dart_Handle ToByteData(const std::vector<char> buffer) {
+constexpr size_t kCopyLimit = 4096;
+
+void FinalizeByteData(void* isolate_callback_data,
+                      Dart_WeakPersistentHandle handle,
+                      void* peer) {
+  std::vector<char>* heap_buffer = static_cast<std::vector<char>*>(peer);
+  delete heap_buffer;
+}
+
+Dart_Handle MoveToByteData(std::vector<char> buffer) {
   if (buffer.empty())
     return Dart_Null();
 
-  Dart_Handle data_handle =
-      Dart_NewTypedData(Dart_TypedData_kByteData, buffer.size());
-  if (Dart_IsError(data_handle))
+  if (buffer.size() < kCopyLimit) {
+    Dart_Handle data_handle =
+        Dart_NewTypedData(Dart_TypedData_kByteData, buffer.size());
+    if (Dart_IsError(data_handle))
+      return data_handle;
+
+    Dart_TypedData_Type type;
+    void* data = nullptr;
+    intptr_t num_bytes = 0;
+    FTL_CHECK(!Dart_IsError(
+        Dart_TypedDataAcquireData(data_handle, &type, &data, &num_bytes)));
+
+    memcpy(data, buffer.data(), num_bytes);
+    Dart_TypedDataReleaseData(data_handle);
     return data_handle;
-
-  Dart_TypedData_Type type;
-  void* data = nullptr;
-  intptr_t num_bytes = 0;
-  FTL_CHECK(!Dart_IsError(
-      Dart_TypedDataAcquireData(data_handle, &type, &data, &num_bytes)));
-
-  memcpy(data, buffer.data(), num_bytes);
-  Dart_TypedDataReleaseData(data_handle);
-  return data_handle;
+  } else {
+    std::vector<char>* heap_buffer = new std::vector<char>();
+    heap_buffer->swap(buffer);
+    Dart_Handle data_handle = Dart_NewExternalTypedData(
+        Dart_TypedData_kByteData, heap_buffer->data(), heap_buffer->size());
+    if (Dart_IsError(data_handle)) {
+      delete heap_buffer;
+      return data_handle;
+    }
+    Dart_NewWeakPersistentHandle(data_handle, heap_buffer, heap_buffer->size(),
+                                 FinalizeByteData);
+    return data_handle;
+  }
 }
 
 }  // namespace
@@ -65,19 +88,8 @@ void PlatformMessageResponseDart::Complete(std::vector<char> data) {
         if (data.empty()) {
           byte_buffer = Dart_Null();
         } else {
-          byte_buffer =
-              Dart_NewTypedData(Dart_TypedData_kByteData, data.size());
+          byte_buffer = MoveToByteData(std::move(data));
           DART_CHECK_VALID(byte_buffer);
-
-          void* buffer;
-          intptr_t length;
-          Dart_TypedData_Type type;
-          DART_CHECK_VALID(
-              Dart_TypedDataAcquireData(byte_buffer, &type, &buffer, &length));
-          FTL_CHECK(type == Dart_TypedData_kByteData);
-          FTL_CHECK(static_cast<size_t>(length) == data.size());
-          memcpy(buffer, data.data(), length);
-          Dart_TypedDataReleaseData(byte_buffer);
         }
 
         tonic::DartInvoke(callback.Release(), {byte_buffer});

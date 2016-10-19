@@ -21,7 +21,7 @@ using tonic::ToDart;
 namespace blink {
 namespace {
 
-Dart_Handle ToByteData(const std::vector<char> buffer) {
+Dart_Handle ToByteData(const std::vector<char>& buffer) {
   if (buffer.empty())
     return Dart_Null();
 
