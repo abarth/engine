@@ -106,11 +106,44 @@ void DecodeImageFromList(Dart_NativeArguments args) {
   }));
 }
 
+void DecodeImageFromPixels(Dart_NativeArguments args) {
+  Dart_Handle exception = nullptr;
+
+  int width
+  int height
+  int format
+
+  tonic::Uint8List list =
+      tonic::DartConverter<tonic::Uint8List>::FromArguments(args, 0, exception);
+  if (exception) {
+    Dart_ThrowException(exception);
+    return;
+  }
+
+  Dart_Handle callback_handle = Dart_GetNativeArgument(args, 1);
+  if (!Dart_IsClosure(callback_handle)) {
+    Dart_ThrowException(ToDart("Callback must be a function"));
+    return;
+  }
+
+  auto buffer = SkData::MakeWithCopy(list.data(), list.num_elements());
+
+  Threads::IO()->PostTask(ftl::MakeCopyable([
+    callback = std::make_unique<DartPersistentValue>(
+        tonic::DartState::Current(), callback_handle),
+    buffer = std::move(buffer)
+  ]() mutable {
+    DecodeImageAndInvokeImageCallback(std::move(callback), std::move(buffer));
+  }));
+}
+
+
 }  // namespace
 
 void ImageDecoding::RegisterNatives(tonic::DartLibraryNatives* natives) {
   natives->Register({
       {"decodeImageFromList", DecodeImageFromList, 2, true},
+      {"decodeImageFromPixels", DecodeImageFromPixels, 5, true},
   });
 }
 

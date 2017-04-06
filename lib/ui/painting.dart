@@ -592,7 +592,7 @@ class Paint {
 ///
 /// To draw an Image, use one of the methods on the [Canvas] class, such as
 /// [drawImage].
-abstract class Image extends NativeFieldWrapperClass2 {
+class Image extends NativeFieldWrapperClass2 {
   /// The number of image pixels along the image's horizontal axis.
   int get width native "Image_width";
 
@@ -613,6 +613,31 @@ typedef void ImageDecoderCallback(Image result);
 /// Convert an image file from a byte array into an [Image] object.
 void decodeImageFromList(Uint8List list, ImageDecoderCallback callback)
     native "decodeImageFromList";
+
+/// The format in which pixel data is stored in memory.
+enum PixelFormat {
+  /// Each pixel is 32 bits, with the highest 8 bits encoding red, the next 8
+  /// bits encoding green, the next 8 bits encoding blue, and the lowest 8 bits
+  /// encoding alpha.
+  rgba8888,
+
+  /// Each pixel is 32 bits, with the highest 8 bits encoding blue, the next 8
+  /// bits encoding green, the next 8 bits encoding red, and the lowest 8 bits
+  /// encoding alpha.
+  bgra8888,
+}
+
+/// Convert an array of pixel values into an [Image] object.
+void decodeImageFromPixels({
+  Uint8List pixels,
+  int width: 0,
+  int height: 0,
+  PixelFormat format: PixelFormat.rgba8888,
+  ImageDecoderCallback callback
+}) => _decodeImageFromPixels(width, height, format.index, data, callback);
+
+void _decodeImageFromPixels(int width, int height, int format, Uint8List data, ImageDecoderCallback callback)
+    native "decodeImageFromPixels";
 
 /// Determines the winding rule that decides how the interior of a [Path] is
 /// calculated.
